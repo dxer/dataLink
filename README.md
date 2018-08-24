@@ -1,7 +1,7 @@
-# EasyETL
+# SparkETL
 > With just a few lines of SQL code you can effortlessly import/export data and complete other ETL operations.
 
-EasyETL是基于Spark，SparkSQL实现的一个应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`Load`，`QueryASTable`、`InsertInto`、`FileOperator`等操作的支持，可以通过编写sql语句的方式来完成更多的ETL操作。
+SparkETL是基于Spark，SparkSQL实现的一个应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`Load`，`QueryASTable`、`InsertInto`、`FileOperator`等操作的支持，可以通过编写sql语句的方式来完成更多的ETL操作。
 
 ##  运行方式
 
