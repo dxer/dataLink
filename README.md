@@ -1,13 +1,33 @@
 # EasyETL
 > With just a few lines of SQL code you can effortlessly import/export data and complete other ETL operations.
 
+EasyETL是基于Spark，SparkSQL实现的一个应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`Load`，`QueryASTable`、`InsertInto`、`FileOperator`等操作的支持，可以通过编写sql语句的方式来完成更多的ETL操作。
 
-对SparkSQL原支持的sql语法进行扩展，支持`Load`，`QueryASTable`、`InsertInto`、`FileOperator`等操作。通过编写sql语句的方式来完成ETL相关操作。
+##  运行方式
 
-## Connect
+支持三种运行模式，在运行时，只能指定一种运行模式：
 
-数据库连接
+- `-e`：直接运行
+- `-f`：运行sql脚本
+- `-s`：启动内置httpserver，通过http请求完成相应的etl操作
 
+```sql
+# -e模式
+spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/dxer-etl-1.0-SNAPSHOT.jar -e "select phone from t_app_userinfo as user;"
+
+# -f模式
+spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/dxer-etl-1.0-SNAPSHOT.jar -f /home/hadoop/app/etl.sql
+
+# -s模式
+spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/dxer-etl-1.0-SNAPSHOT.jar -s -p 8099
+```
+
+## SQL扩展
+
+### Connect
+创建数据库连接，供后续ETL操作时使用
+
+相关参数：
 - name：连接名称，供后面使用
 - properties：
   - driver：数据库驱动
@@ -22,11 +42,14 @@ create connect oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracl
 
 # 删除connect
 drop connect oracle;
+
+# 查看connect配置信息
+show cronnect oracle;
 ```
 
 
 
-##  Load
+###  Load
 
 加载数据到临时表，支持如下格式数据
 
@@ -61,7 +84,7 @@ load local json.`/home/hadoop/test/111/t_province_code.json` as t_province_code;
 
 
 
-## QueryASTable
+### QueryASTable
 
 支持将sql执行后的结果转成临时表
 
@@ -74,7 +97,7 @@ select * from hadoop.t_flow limit 10 as tmp_flow;
 
 
 
-## InsertInto
+### InsertInto
 
 将表中数据进行持久化，支持如下方式：
 
@@ -104,7 +127,7 @@ insert overwrite json.`/user/hadoop/flow/` from tmp_flow;
 
 
 
-## FileOperator
+### FileOperator
 
 HDFS相关操作
 
@@ -123,11 +146,6 @@ get src overwrite dest;
 del src;
 ```
 
-
-
-## 常规sql支持
-
-多条sql中每条sql使用";"结束，并加上换行。
 
 ## 使用
 
