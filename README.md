@@ -46,7 +46,7 @@ drop connect oracle;
 例子：
 
 ```sql
-#
+# 通过connection加载数据到临时表
 load oracle.`ods.t_province_code` as ttt;
 
 # Pushdown模式
@@ -67,7 +67,8 @@ load local json.`/home/hadoop/test/111/t_province_code.json` as t_province_code;
 
 例子：
 
-```
+```sql
+# 将hive表加载到临时表
 select * from hadoop.t_flow limit 10 as tmp_flow;
 ```
 
@@ -131,8 +132,8 @@ del src;
 ## 使用
 
 ```sql
-spark2-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/womusic/app/dxer-etl-1.0-SNAPSHOT.jar -e "
-select * from haifeng.wo_flow limit 10 as tmp_wo_flow;
-save tmp_wo_flow as json.`/user/womusic/222`;"
+spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/dxer-etl-1.0-SNAPSHOT.jar -e "
+select * from hadoop.wo_flow limit 10 as tmp_flow;
+insert overwrite json.`/user/hadoop/flow` from  tmp_flow;"
 ```
 
