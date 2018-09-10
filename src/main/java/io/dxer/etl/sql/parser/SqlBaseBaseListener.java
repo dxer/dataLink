@@ -1,4 +1,4 @@
-// Generated from E:/work/github/SparkETL/src/main/antlr4/io/dxer/etl/sql/parser\SqlBase.g4 by ANTLR 4.7
+// Generated from E:/work/SparkETL/src/main/antlr4/io/dxer/etl/sql/parser\SqlBase.g4 by ANTLR 4.7
 package io.dxer.etl.sql.parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;

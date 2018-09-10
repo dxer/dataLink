@@ -59,8 +59,6 @@ queryAsTable
 
 insertInto
     : INSERT saveMode=(OVERWRITE | APPEND | ERROR_IF_EXISTS | IGNORE | INTO)? LOCAL? format '.' path (partitionSpec (IF NOT EXISTS)?)? (WITH properties)? FROM
-//    | INSERT OVERWRITE LOCAL? DIRECTORY path=STRING rowFormat? createFileFormat?
-    //| INSERT OVERWRITE LOCAL? DIRECTORY (path=STRING)? tableProvider (OPTIONS options=tablePropertyList)?
     ;
 
 insertIntoStatement
