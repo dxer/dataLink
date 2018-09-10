@@ -1,11 +1,14 @@
 package io.dxer.etl.operator
 
+import java.util.Properties
+
 import com.google.common.base.Strings
 import io.dxer.etl.ConnectionManager
+import io.dxer.etl.operator.output.OutputFormat
 import io.dxer.etl.sql.tree.InsertInto
-import io.dxer.etl.util.Utils
+import io.dxer.etl.util.{PropertiesUtils, Utils}
 import org.apache.spark.SparkException
-import org.apache.spark.sql.{DataFrame, DataFrameWriter, SaveMode, SparkSession}
+import org.apache.spark.sql._
 
 /**
   * insert into
@@ -63,21 +66,44 @@ class InsertIntoOperator(sparkSession: SparkSession, insertInto: InsertInto) ext
       }
     }
 
-    format.toLowerCase match {
-      case "csv" => write.csv(path)
-      case "json" => write.json(path)
-      case "parquet" => write.parquet(path)
-      case "hive" => { // 导入到hive表
-        write.saveAsTable(path)
+    val outputFormatClass = PropertiesUtils.getString(properties, "outputFormatClass")
+    val outputFormat: OutputFormat = if (!Strings.isNullOrEmpty(outputFormatClass)) {
+      try {
+        Class.forName(outputFormatClass).newInstance().asInstanceOf[OutputFormat]
+      } catch {
+        case e: Exception =>
+          throw new SparkException(s"Cannot load class ${outputFormatClass}")
       }
+    } else null
+
+    format.toLowerCase match {
+      case _ if outputFormat != null =>
+        outputFormat.run(insertInto)
+
+      case "json" =>
+        write.json(path)
+
+      case "parquet" =>
+        write.parquet(path)
+
+      case "hive" =>
+        write.saveAsTable(path)
+
+      case "hbase" =>
+        saveAsHBaseTable(write, path, properties)
+
       case _ if Utils.isSimpleText(format) =>
+        write.options(Utils.convertPropToMap(properties)).csv(path)
+
       case _ if ConnectionManager.contains(format) => { //
-        val connect = ConnectionManager.getConnectByName(format)
-        require(connect != null, s"Connection<name=${format}> is not exist, you must create it first")
+        val connection = ConnectionManager.getConnectByName(format)
+        require(connection != null, s"${connection.connectionType} Connection ${connection.name} is not exist")
 
-        Class.forName(connect.getDriver())
+        val driver = connection.properties.getProperty("driver")
+        val url = connection.properties.getProperty("url")
+        Class.forName(driver)
 
-        //   方式一
+        //   Method 1:
         //        val props = conn.getProperties
         //        val options = Map[String, String](
         //          "driver" -> props.getProperty("driver"),
@@ -89,12 +115,19 @@ class InsertIntoOperator(sparkSession: SparkSession, insertInto: InsertInto) ext
         //
         //        write.format("jdbc").options(options).save(path)
 
-        // 方式二
-        write.jdbc(connect.getJDBCUrl, path, connect.getConnectionProperties)
+        // Method 2:
+        write.jdbc(url, path, connection.properties)
       }
       case _ => throw new SparkException("Not support InsertIntoOperator")
     }
-    setResultMsg("InsertIntoOperator success")
+    setResultMsg("OK", msg = null)
+  }
+
+  private def saveAsHBaseTable(writer: DataFrameWriter[Row], path: String, properties: Properties): Unit = {
+    var options = Utils.convertPropToMap(properties)
+    options += ("hbase.table.name" -> path)
+    writer.format("org.apache.spark.sql.execution.datasources.hbase")
+      .options(options).save()
   }
 
   def partition(write: DataFrameWriter[Any], colNames: Array[String]) {

@@ -1,5 +1,10 @@
 package io.dxer.etl.util
 
+import java.util.Properties
+
+import scala.collection.JavaConversions.propertiesAsScalaMap
+
+
 object Utils {
 
   /**
@@ -14,4 +19,8 @@ object Utils {
     } else false
   }
 
+  def convertPropToMap(props: Properties): Map[String, String] = {
+    if (props != null) props.toMap
+    else Map[String, String]()
+  }
 }

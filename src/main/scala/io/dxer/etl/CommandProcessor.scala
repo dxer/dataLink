@@ -69,9 +69,6 @@ class CommandProcessor {
     var sqls = Array[String]()
     if (commandLine.hasOption('e')) {
       val body = commandLine.getOptionValue('e')
-
-      body.split("(\\s*\\r\\n)|(\\s*\\n)").foreach(println(_))
-
       sqls = SQLUtils.parseSqls(body)
     } else if (commandLine.hasOption('f')) {
       val file = commandLine.getOptionValue('f')

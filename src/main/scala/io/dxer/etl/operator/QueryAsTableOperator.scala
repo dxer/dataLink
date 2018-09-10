@@ -10,7 +10,7 @@ class QueryAsTableOperator(sparkSession: SparkSession, queryAsTable: QueryAsTabl
     val df = sparkSession.sql(queryAsTable.getQuery)
     df.createOrReplaceTempView(queryAsTable.getTableName)
     df.printSchema()
-    setResultMsg("QueryAsTableOperator success")
+    setResultMsg("OK")
 
   }
 }

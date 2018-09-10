@@ -34,7 +34,7 @@ object PropertiesUtils {
   def getString(props: Properties, name: String, defaultValue: String): String = {
     if (props != null && props.contains(name)) {
       props.getProperty(name, defaultValue)
-    } else null
+    } else defaultValue
   }
 
 }

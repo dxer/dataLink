@@ -51,18 +51,32 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
 
     @Override
     public Node visitConnectStatement(SqlBaseParser.ConnectStatementContext ctx) {
-        Connection.OperType type = null;
-        if (ctx.CREATE() != null) {
-            type = Connection.OperType.CREATE;
-        } else if (ctx.DROP() != null) {
-            type = Connection.OperType.DROP;
-        } else if (ctx.SHOW() != null) {
-            type = Connection.OperType.SHOW;
+        Connection.OperType operType = null;
+
+        String opTypeString = getTextIfPresent(ctx.opType).orNull();
+
+        if (opTypeString.equalsIgnoreCase("create")) { // create
+            operType = Connection.OperType.CREATE;
+        } else if (opTypeString.equalsIgnoreCase("drop")) { // drop
+            operType = Connection.OperType.DROP;
+        } else if (opTypeString.equalsIgnoreCase("show") && ctx.CREATE() != null && ctx.CONNECTIONS() == null) { // show create connection
+            operType = Connection.OperType.SHOW;
+        } else if (opTypeString.equalsIgnoreCase("show") && ctx.CONNECTIONS() != null) { // show connections
+            operType = Connection.OperType.SHOW_CONNECTIONS;
         }
 
-        return new Connection(getLocation(ctx),
-                type,
-                getTextIfPresent(ctx.conn).orNull(),
+        boolean isTemp = ctx.TEMPORARY() != null ? true : false;
+
+        Connection.ConnectionType connectionType = null;
+        if (ctx.type != null) {
+            connectionType = Connection.ConnectionType.getConnectionType(getTextIfPresent(ctx.type).orNull());
+        }
+
+        return new Connection(
+                operType,
+                isTemp,
+                connectionType,
+                getTextIfPresent(ctx.name).orNull(),
                 getProperties(ctx.properties()));
     }
 
@@ -147,7 +161,7 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
     @Override
     public Node visitExecStatement(SqlBaseParser.ExecStatementContext ctx) {
         String originalText = getOriginalText(ctx);
-        String command = originalText.replaceFirst("(?i)exec[\\s|\\n]" , "");
+        String command = originalText.replaceFirst("(?i)exec[\\s|\\n]", "");
 
         return super.visitExecStatement(ctx);
     }

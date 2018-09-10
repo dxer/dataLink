@@ -45,7 +45,7 @@ class SaveOperator(sparkSession: SparkSession, save: Save) extends Operator {
         if (conn != null)
           throw new SparkException("")
 
-        val props = conn.getProperties
+        val props = conn.properties
         val options = Map[String, String](
           "url" -> props.getProperty("url"),
           "user" -> props.getProperty("user"),

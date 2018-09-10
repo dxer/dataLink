@@ -29,8 +29,7 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
       path = "file:///" + path
     }
 
-
-    val read = sparkSession.read
+    val reader = sparkSession.read
 
     var df: DataFrame = null
 
@@ -40,56 +39,72 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
       try {
         Class.forName(inputFormatClass).newInstance().asInstanceOf[InputFormat]
       } catch {
-        case e: Exception => e.printStackTrace()
-          null
+        case e: Exception =>
+          throw new SparkException(s"Cannot load class ${inputFormatClass}")
       }
     } else null
 
 
     format.toLowerCase match {
-      case "parquet" => df = read.parquet(path)
-      case "json" => df = read.json(path)
-      case _ if Utils.isSimpleText(format) => df = buildDFFromText(read, format, path, properties)
-      case _ if ConnectionManager.contains(format) => df = buildDFFromJDBC(read, format, path, properties)
-      case "hive" => df = sparkSession.sql(s"select * from ${path}")
-      case _ if inputFormat != null => df = inputFormat.run(load)
-      case _ => throw new SparkException("Not support Load task")
+      case _ if inputFormat != null =>
+        df = inputFormat.run(load)
+
+      case "parquet" =>
+        df = reader.parquet(path)
+
+      case "json" =>
+        df = reader.json(path)
+
+      case _ if Utils.isSimpleText(format) => // text/csv/tsv
+        df = buildDataFrameFromText(reader, format, path, properties)
+
+      case _ if ConnectionManager.contains(format) =>
+        df = buildDataFrameFromJDBC(reader, format, path, properties)
+
+      case "hive" =>
+        df = sparkSession.sql(s"select * from ${path}")
+
+      case "hbase" =>
+        buildDataFrameFromHBase(reader, path, properties)
+
+      case _ =>
+        throw new SparkException("Not support Load task")
     }
 
     if (df != null) {
       df.createOrReplaceTempView(tableName)
       df.printSchema()
-      setResultMsg(s"LoadOperator success")
+      setResult("OK")
     }
   }
 
   /**
     * 将csv/text/json文本内容转化为DataFrame
     *
-    * @param read
+    * @param reader
     * @param format
     * @param path
     * @param properties
     * @return
     */
-  private def buildDFFromText(read: DataFrameReader,
-                              format: String,
-                              path: String,
-                              properties: Properties): DataFrame = {
-    // 根据format获取分隔符
+  private def buildDataFrameFromText(reader: DataFrameReader,
+                                     format: String,
+                                     path: String,
+                                     properties: Properties): DataFrame = {
+    // get delimiter by format
     val delimiter = format.toLowerCase match {
-      case "csv" => ","
-      case "tsv" => "\t"
-      case "text" => properties.getProperty("delimiter", ",")
+      case "csv" => PropertiesUtils.getString(properties, "delimiter", ",")
+      case "tsv" => PropertiesUtils.getString(properties, "delimiter", "\t")
+      case "text" => PropertiesUtils.getString(properties, "delimiter", ",")
     }
 
-    val header = PropertiesUtils.getString(properties, "header")
+    val header = PropertiesUtils.getString(properties, "header", "false")
 
     var cols: Seq[String] = null
     val colNames = PropertiesUtils.getString(properties, "colNames")
-    if ((!Strings.isNullOrEmpty(header) && header.toBoolean) || !Strings.isNullOrEmpty(colNames)) { // 需要设置头部
+    if (header.toBoolean || !Strings.isNullOrEmpty(colNames)) { // 需要设置头部
       // 将预设的列名按照","进行分割
-      cols = colNames.split(",").map(_.trim).toSeq
+      cols = colNames.split(",", -1).map(_.trim).toSeq
     }
 
     val options = scala.collection.mutable.Map[String, String]()
@@ -103,7 +118,7 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
       options += ("inferSchema" -> properties.getProperty("inferSchema"))
     }
 
-    val df = read.format("csv").options(options.toMap).csv(path)
+    val df = reader.format("csv").options(options.toMap).csv(path)
 
     if (cols != null) { // 使用自定义列
       df.toDF(cols: _*)
@@ -115,23 +130,25 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
   /**
     * 以jdbc方式将数据源转化为DataFrame
     *
-    * @param read
+    * @param reader
     * @param format
     * @param path , 支持table和pushdown_query
     * @param properties
     * @return
     */
-  private def buildDFFromJDBC(read: DataFrameReader,
-                              format: String,
-                              path: String,
-                              properties: Properties): DataFrame = {
-    val connect = ConnectionManager.getConnectByName(format)
-    if (connect == null)
+  private def buildDataFrameFromJDBC(reader: DataFrameReader,
+                                     format: String,
+                                     path: String,
+                                     properties: Properties): DataFrame = {
+    val connection = ConnectionManager.getConnectByName(format)
+    if (connection == null)
       throw new SparkException("connect is not exists")
 
-    Class.forName(connect.getDriver())
+    val driver = connection.properties.getProperty("driver")
+    val url = connection.properties.getProperty("url")
+    Class.forName(driver)
 
-    // 方式一
+    // method 1
     // val props = connect.getProperties
     //    val options = Map[String, String](
     //      "driver" -> props.getProperty("driver"),
@@ -141,9 +158,23 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
     //      "password" -> props.getProperty("password")
     //    )
 
-    // read.format("jdbc").options(options).load()
+    // reader.format("jdbc").options(options).load()
 
-    // 方式二
-    read.jdbc(connect.getJDBCUrl, path, connect.getConnectionProperties)
+    // method 2
+    reader.jdbc(url, path, connection.properties)
+  }
+
+  /**
+    *
+    * @param reader
+    * @param tableName
+    * @param properties
+    * @return
+    */
+  private def buildDataFrameFromHBase(reader: DataFrameReader, tableName: String, properties: Properties): DataFrame = {
+    var options = Utils.convertPropToMap(properties)
+    options += ("hbase.table.name" -> tableName)
+    reader.format("org.apache.spark.sql.execution.datasources.hbase")
+      .options(options).load()
   }
 }

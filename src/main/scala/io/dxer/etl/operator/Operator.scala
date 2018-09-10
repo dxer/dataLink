@@ -11,7 +11,7 @@ abstract class Operator {
     } catch {
       case e: Exception => {
         e.printStackTrace()
-        setResultMsg(s"${getClass.getSimpleName} error, ${e.getMessage}")
+        setResultMsg("Error", s"${getClass.getSimpleName} error, ${e.getMessage}")
       }
     }
     operResult.end = System.currentTimeMillis()
@@ -20,7 +20,14 @@ abstract class Operator {
 
   def exec(): Unit
 
-  def setResultMsg(msg: String): Unit = {
-    operResult.message = msg
+  def setResult(result: String): Unit = {
+    operResult.result = result
+  }
+
+  def setResultMsg(result: String, msg: String = null): Unit = {
+    if (result != null)
+      operResult.result = result
+    if (msg != null)
+      operResult.message = msg
   }
 }

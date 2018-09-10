@@ -23,7 +23,7 @@ object SQLEngine extends Logging {
       st = parser.createStatement(sqlText, new ParsingOptions)
     catch {
       case e: ParsingException =>
-        log.error("sql parse error", e)
+        log.error(s"sql parse error<${sqlText}>", e)
         throw e
     }
 
@@ -34,8 +34,8 @@ object SQLEngine extends Logging {
       case st if st.isInstanceOf[Save] => new SaveOperator(sparkSession, st.asInstanceOf[Save])
       case st if st.isInstanceOf[QueryAsTable] => new QueryAsTableOperator(sparkSession, st.asInstanceOf[QueryAsTable])
       case st if st.isInstanceOf[InsertInto] => new InsertIntoOperator(sparkSession, st.asInstanceOf[InsertInto])
-      case st if (st.isInstanceOf[Query] && verify(sparkSession, sqlText)) => new SQLOperator(sparkSession, sqlText)
       case st if st.isInstanceOf[CmdOper] => new CmdOperator(st.asInstanceOf[CmdOper])
+      case st if verify(sparkSession, sqlText) => new SQLOperator(sparkSession, sqlText)
       case _ => throw new SparkException("Not support operator")
     }
 
