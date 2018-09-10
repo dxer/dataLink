@@ -149,19 +149,23 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
     Class.forName(driver)
 
     // method 1
-    // val props = connect.getProperties
-    //    val options = Map[String, String](
-    //      "driver" -> props.getProperty("driver"),
-    //      "url" -> props.getProperty("url"),
-    //      "dbtable" -> table,
-    //      "user" -> props.getProperty("user"),
-    //      "password" -> props.getProperty("password")
-    //    )
 
-    // reader.format("jdbc").options(options).load()
+    //    val options = Map[String, String](
+    //      "driver" -> properties.getProperty("driver"),
+    //      "url" -> properties.getProperty("url"),
+    //      "dbtable" -> path,
+    //      "user" -> properties.getProperty("user"),
+    //      "password" -> properties.getProperty("password")
+    //    )
+    //
+    //    reader.format("jdbc").options(options).load()
 
     // method 2
-    reader.jdbc(url, path, connection.properties)
+    val table = if (path.toLowerCase.trim.startsWith("select ")) {
+      s"(${path}) _tmp_"
+    } else path
+
+    reader.jdbc(url, table, connection.properties)
   }
 
   /**
