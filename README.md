@@ -27,7 +27,13 @@ spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home
 ### Connection相关操作
 创建相关连接（JDBC）配置，供后续使用，支持创建临时connection（会话级别）和永久的connection配置信息，会将connection信息保存到zookeeper中，供不同的应用使用
 
-相关参数：
+**语法**
+
+```mysql
+create [ConnectionType] [temporary] connection [name] (key=value）;
+```
+
+相关参数解释：
 
 - connectionType：connection类别
   - jdbc：jdbc类
@@ -40,23 +46,20 @@ spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home
   - password：访问数据库的密码
 
 
-```sql
-# 创建语法
-create [ConnectionType] [temporary] connection [name] (key=value）;
-
-# 创建connection
+```mysql
+-- 创建connection
 create jdbc connection oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.1.101:1521:dcdb', user='test', password='test'）;
 
-# 创建临时connection
+-- 创建临时connection
 create temporary jdbc connection oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.132.149:1521:dcdb', user='admin', password='admin'）;
 
-# 删除connect
+-- 删除connect
 drop connect oracle;
 
-# 查看connect配置信息
+-- 查看connect配置信息
 show create connection oracle;
 
-# 查看所有connections
+-- 查看所有connections
 show connections;
 ```
 
@@ -64,8 +67,15 @@ show connections;
 
 ###  Load
 
-加载数据到临时表，相关参数如下
+加载数据到临时表
 
+**语法**
+
+```sql
+load [local] <format>.<path> as <table>
+```
+
+相关参数解释：
 - local：可选，设置local，表示将本地文件加载到临时表中，否则是hdfs中相关路径下的文件
 - format：数据源格式，支持如下格式：
   - parquet：列式存储格式文件
@@ -115,10 +125,16 @@ load local json.`/home/hadoop/test/111/t_province_code.json` as t_province_code;
 
 将sql执行后的结果转成spark临时表
 
+**语法**
+
+```mysql
+<select sql> as tmp_table
+```
+
 例子：
 
 ```sql
-# 将hive表加载到临时表
+-- 将hive表加载到临时表
 select * from hadoop.t_flow limit 10 as tmp_flow;
 ```
 
@@ -126,16 +142,14 @@ select * from hadoop.t_flow limit 10 as tmp_flow;
 
 ### InsertInto
 
+将表中数据进行持久化
+
 **语法：**
 
 ```mssql
 insert [savemode] [local] <format>.<path> [properties] from <table | sql>
 ```
-
-**作用：**
-
-将表中数据进行持久化，支持如下方式：
-
+相关参数解释：
 - saveMode：主要
   - overwrite：覆盖
   - append：追加
@@ -161,7 +175,7 @@ insert [savemode] [local] <format>.<path> [properties] from <table | sql>
     - hbase.table.name：hbase数据源表名
     - spark.table.name：加载的spark表名
     - spark.table.schema：加载的spark表的schema，需要与`hbase.table.schema`对应，并同时配置
-    - hbase.table.rowkey.field：
+    - hbase.table.rowkey.field：指定rowkey所对的列，不设置的话，会自动去寻找名为`rowkey`的列
     - hbase.table.schema：被加载的hbase表的schema，需要与`spark.table.schema`对应，并同时配置
     - bulkload.enable：是否启用bulkload模式，默认不启动，当要插入的hbase表只有`rowkey`列的时候，必须启动
     - hbase.check.table：检查hbase表是否存在，默认`false`，在设置`true`的时候，如果hbase的表不存在，则会创建
