@@ -11,6 +11,5 @@ class QueryAsTableOperator(sparkSession: SparkSession, queryAsTable: QueryAsTabl
     df.createOrReplaceTempView(queryAsTable.getTableName)
     df.printSchema()
     setResultMsg("OK")
-
   }
 }

@@ -16,8 +16,15 @@ object ETLApp {
     if (processor.hasOption('e') || processor.hasOption('f')) {
       val sqls = processor.getSQLs()
       sqls.foreach(sql => {
-        val result = SQLEngine.execute(SparkSessionHolder.sparkSession, sql)
-        println(new Gson().toJson(result))
+        var start = System.currentTimeMillis()
+        val operResult = SQLEngine.execute(SparkSessionHolder.sparkSession, sql)
+        val end = System.currentTimeMillis()
+        if (operResult != null) {
+          if (!Strings.isNullOrEmpty(operResult.content)) {
+            println(operResult.content)
+          }
+          println(operResult.msg)
+        }
       })
     } else if (processor.hasOption('s')) { //
       val portStr = processor.getValue('p')

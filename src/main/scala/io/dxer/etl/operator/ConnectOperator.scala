@@ -32,22 +32,22 @@ class ConnectOperator(connect: Connection) extends Operator {
 
   private def createConnect(connect: Connection): Unit = {
     if (ConnectionManager.getConnectByName(connect.getName) != null) {
-      setResultMsg("FAILED", s"Connection ${connect.getName} already exists")
+      setResultMsg(s"FAILED, Connection ${connect.getName} already exists")
     } else {
       ConnectionManager.addConnect(connect)
-      setResultMsg("OK", msg = null)
+      setResultMsg("OK")
     }
   }
 
   private def dropConnect(connect: Connection): Unit = {
     ConnectionManager.removeConnect(connect.getName)
-    setResult("OK")
+    setResultMsg("OK")
   }
 
   private def showConnect(connect: Connection): Unit = {
     val curConnect = ConnectionManager.getConnectByName(connect.getName)
     if (curConnect == null) {
-      setResultMsg("FAILED", s"Connection not found ${curConnect.name}")
+      setResultMsg(s"FAILED, Connection not found ${curConnect.name}")
       return
     }
     val props = curConnect.properties
@@ -66,8 +66,9 @@ class ConnectOperator(connect: Connection) extends Operator {
          | ${sb.toString}
          | );""".stripMargin
 
-    print(result)
-    setResult("OK")
+    operResult.content = result
+    operResult.data = curConnect
+    setResultMsg("OK")
   }
 
   private def showAllConnect(): Unit = {
@@ -79,8 +80,9 @@ class ConnectOperator(connect: Connection) extends Operator {
       sb.append(c.connectionType).append("\t").append(c.name).append("\t").append(c.isTemp).append("\n")
     })
 
-    print(sb.toString())
+    operResult.content = sb.toString
+    operResult.data = connections
 
-    setResult("OK")
+    setResultMsg("OK")
   }
 }

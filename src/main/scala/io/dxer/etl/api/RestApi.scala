@@ -23,13 +23,21 @@ class RestApi {
   @Consumes(Array(MediaType.APPLICATION_JSON))
   @Produces(Array(MediaType.APPLICATION_JSON))
   def execute(request: Request): JMap[String, Any] = {
+    val start = System.currentTimeMillis()
     val resultMap = new JHashMap[String, Any]()
-
     if (!Strings.isNullOrEmpty(request.getSql)) {
-      val result = SQLEngine.execute(SparkSessionHolder.sparkSession, request.getSql)
-      resultMap.put("msg", result.message)
-      resultMap.put("cost", result.getCost())
+      try {
+        val operResult = SQLEngine.execute(SparkSessionHolder.sparkSession, request.getSql)
+        if (operResult != null) {
+          resultMap.put("result", operResult.msg)
+          resultMap.put("data", operResult.data)
+        }
+      } catch {
+        case e: Exception => e.printStackTrace()
+          resultMap.put("msg", e.getMessage)
+      }
     }
+    resultMap.put("cost", System.currentTimeMillis() - start)
 
     resultMap
   }

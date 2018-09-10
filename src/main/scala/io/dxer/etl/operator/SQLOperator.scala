@@ -13,6 +13,6 @@ class SQLOperator(sparkSession: SparkSession, sqlText: String) extends Operator 
   override def exec(): Unit = {
     val df = sparkSession.sql(sqlText)
     df.show(10)
-    setResultMsg("SQLOperator success")
+    setResultMsg("OK")
   }
 }

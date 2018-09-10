@@ -74,7 +74,7 @@ class LoadOperator(sparkSession: SparkSession, load: Load) extends Operator {
     if (df != null) {
       df.createOrReplaceTempView(tableName)
       df.printSchema()
-      setResult("OK")
+      setResultMsg("OK")
     }
   }
 

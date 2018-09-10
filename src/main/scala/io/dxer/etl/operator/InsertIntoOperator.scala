@@ -120,7 +120,7 @@ class InsertIntoOperator(sparkSession: SparkSession, insertInto: InsertInto) ext
       }
       case _ => throw new SparkException("Not support InsertIntoOperator")
     }
-    setResultMsg("OK", msg = null)
+    setResultMsg("OK")
   }
 
   private def saveAsHBaseTable(writer: DataFrameWriter[Row], path: String, properties: Properties): Unit = {
