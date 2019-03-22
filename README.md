@@ -32,7 +32,7 @@ select count(1) from test;
 insert overwrite local parquet.`/tmp/test` from test;
 
 -- 将txt文本文件导入到表中，并配置grok对每行数据进行解析
-load data txt.`/data/user.txt` options(grok.compile.pattern='%{test:name};%{test1:age}',grok.add.pattern.test='.*', grok.add.pattern.test1='\d+') as test;
+load data txt.`/data/user.txt` options(grok.compile.pattern='%{name:name};%{age:age}',grok.add.pattern.name='.*', grok.add.pattern.age='\d+') as user;
 select max(cast (age as int)) as maxAge from test;
 ```
 
@@ -214,9 +214,12 @@ insert overwrite json.`/user/hadoop/flow/` from tmp_flow;
 ## 使用
 
 ```sql
-spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/sparketl-1.0-SNAPSHOT.jar -e "
-select * from hadoop.wo_flow limit 10 as tmp_flow;
-insert overwrite json.`/user/hadoop/flow` from  tmp_flow;"
+sh datalink.sh -e "
+load data txt.\`/data/user.txt\` 
+options(grok.compile.pattern='%{name:a};%{age:b}', grok.add.pattern.name='.*', grok.add.pattern.age='\d+') as user;
+select * from user;
+select max(cast (age as int)) as maxAge from test;
+"
 ```
 
 ## TODO
