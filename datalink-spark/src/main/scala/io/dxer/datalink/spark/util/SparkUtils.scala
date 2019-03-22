@@ -2,8 +2,9 @@ package io.dxer.datalink.spark.util
 
 import java.sql.{Date, Timestamp}
 
-import org.apache.spark.sql.Row
+import io.dxer.datalink.spark.output.ConsolePrinter
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row}
 import org.joda.time.DateTime
 
 object SparkUtils {
@@ -59,5 +60,28 @@ object SparkUtils {
     }
   }
 
+
+  def toResult(df: DataFrame): Unit = {
+    val fieldNames = df.schema.map(f => f.name).toList
+
+    val result = if (df.collect().size > 1000) {
+      df.collect().take(1000)
+    } else {
+      df.collect()
+    }
+
+    val data = result.map(row => {
+      df.schema.map(f => {
+        SparkUtils.getFromRow(row, f.dataType, f.name)
+      }).toList
+    }).toList
+
+    ConsolePrinter(fieldNames, true, System.out).printRows(data)
+  }
+
+
+  def toResult(fieldNames: List[String], data: List[List[_ <: Any]], headerOutput: Boolean = true): Unit = {
+    ConsolePrinter(fieldNames, true, System.out).printRows(data)
+  }
 
 }

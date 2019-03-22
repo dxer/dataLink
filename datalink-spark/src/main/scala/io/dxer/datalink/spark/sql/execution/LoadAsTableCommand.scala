@@ -2,7 +2,7 @@ package io.dxer.datalink.spark.sql.execution
 
 import com.google.common.base.Strings
 import io.dxer.datalink.exception.DataLinkException
-import io.dxer.datalink.spark.output.ConsolePrinter
+import io.dxer.datalink.spark.util.SparkUtils
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
 import io.dxer.datalink.sql.DataLinkSession
 import io.dxer.datalink.sql.parser.LoadAsTable
@@ -65,8 +65,8 @@ class LoadAsTableCommand(loadAsTable: LoadAsTable) extends LoadCommand {
     df.createOrReplaceTempView(tableName)
 
     val fieldNames = List[String]("Column", "Type", "Null")
-    val list = df.schema.map(f => List(f.name, f.dataType.typeName, f.nullable.toString)).toList
-    ConsolePrinter(fieldNames, true, System.out).printRows(list)
+    val data = df.schema.map(f => List(f.name, f.dataType.typeName, f.nullable.toString)).toList
+    SparkUtils.toResult(fieldNames, data)
   }
 
 

@@ -12,10 +12,6 @@ class ConsolePrinter(fieldNames: List[String], headerOutput: Boolean, out: Print
   private val HEX_SPLITTER = Splitter.fixedLength(2)
 
   override def printRows(rows: List[List[_ <: Any]]): Unit = {
-    //    rows.foreach(row => {
-    //      out.print(formatRow(row))
-    //    })
-
     val columns = fieldNames.size
     val maxWidth = new Array[Int](columns)
     val fieldNamesWithIndex = fieldNames.zipWithIndex
@@ -56,8 +52,6 @@ class ConsolePrinter(fieldNames: List[String], headerOutput: Boolean, out: Print
       }
       out.append('\n')
     })
-
-
   }
 
   override def finish(): Unit = ???

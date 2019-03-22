@@ -2,6 +2,7 @@ package io.dxer.datalink.spark.sql.execution
 
 import com.google.common.base.Strings
 import io.dxer.datalink.exception.DataLinkException
+import io.dxer.datalink.spark.util.SparkUtils
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
 import io.dxer.datalink.sql.DataLinkSession
 import io.dxer.datalink.sql.parser.LoadIntoTable
@@ -83,6 +84,6 @@ class LoadIntoTableCommand(loadIntoTable: LoadIntoTable) extends LoadCommand {
       sparkSession.sql("set hive.exec.dynamic.partition.mode=strict")
     }
 
-    df.schema
+    SparkUtils.toResult(df)
   }
 }
