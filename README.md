@@ -20,7 +20,20 @@ DataLink是一个基于**Spark+SparkSQL**实现的应用程序，实现了对Spa
 
 ## 基本语法
 ```sql
+-- 将csv文件加载到spark临时表
+load data csv.`/home/vagrant/data/test.csv` as test;
 
+-- 对test表进行操作
+select * from test;
+select sum(_c0) from test;
+select count(1) from test;
+
+-- 将test表数据以parquet格式导出到本地
+insert overwrite local parquet.`/tmp/test` from test;
+
+-- 将txt文本文件导入到表中，并配置grok对每行数据进行解析
+load data txt.`/data/user.txt` options(grok.compile.pattern='%{test:name};%{test1:age}',grok.add.pattern.test='.*', grok.add.pattern.test1='\d+') as test;
+select max(cast (age as int)) as maxAge from test;
 ```
 
 ## SQL扩展
