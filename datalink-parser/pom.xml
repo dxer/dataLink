@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>datalink</artifactId>
+        <groupId>io.dxer.datalink</groupId>
+        <version>0.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>datalink-parser</artifactId>
+    <properties>
+
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-reflect</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <outputDirectory>target/classes</outputDirectory>
+        <plugins>
+            <!--<plugin>-->
+                <!--<groupId>org.scalatest</groupId>-->
+                <!--<artifactId>scalatest-maven-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<argLine>-ea -Xmx4g -Xss4m -XX:ReservedCodeCacheSize=${CodeCacheSize}</argLine>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <visitor>true</visitor>
+                    <sourceDirectory>src/main/antlr4</sourceDirectory>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

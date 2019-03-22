@@ -1,15 +1,41 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.dxer.etl</groupId>
-    <artifactId>sparketl</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>io.dxer.datalink</groupId>
+    <artifactId>datalink</artifactId>
+    <packaging>pom</packaging>
+    <version>0.1.0</version>
+    <name>DataLink</name>
+
+    <modules>
+        <module>datalink-parser</module>
+        <module>datalink-common</module>
+        <module>datalink-spark</module>
+        <module>assembly</module>
+    </modules>
 
     <properties>
-        <scala.version>2.11.3</scala.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <scala.version>2.11.8</scala.version>
+        <scala.binary.version>2.11</scala.binary.version>
+        <log4j.version>1.2.17</log4j.version>
+        <antlr4.version>4.7</antlr4.version>
         <hadoop.version>2.6.0</hadoop.version>
-        <spark.version>2.3.0</spark.version>
+        <spark.version>2.3.2</spark.version>
         <hbase.version>1.2.0</hbase.version>
+        <slf4j.version>1.7.16</slf4j.version>
+
+
+        <!--<dev.scope>runtime</dev.scope>-->
+        <dev.scope>provided</dev.scope>
+        <!--<dev.scope>compile</dev.scope>-->
+
+        <mvn-assembly-plugin.version>3.1.0</mvn-assembly-plugin.version>
+        <CodeCacheSize>512m</CodeCacheSize>
     </properties>
 
     <repositories>
@@ -25,182 +51,315 @@
                 <checksumPolicy>fail</checksumPolicy>
             </snapshots>
         </repository>
-
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.4</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4</artifactId>
-            <version>4.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hive_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.9</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>9.3.6.v20151106</version>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--<groupId>com.sun.jersey</groupId>-->
-        <!--<artifactId>jersey-json</artifactId>-->
-        <!--<version>1.17.1</version>-->
-        <!--</dependency>-->
-
-        <dependency>
-            <groupId>com.owlike</groupId>
-            <artifactId>genson</artifactId>
-            <version>1.4</version>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--<groupId>org.json4s</groupId>-->
-        <!--<artifactId>json4s-ext_2.11</artifactId>-->
-        <!--<version>3.2.11</version>-->
-        <!--</dependency>-->
-
-
     </dependencies>
 
+    <dependencyManagement>
+
+        <dependencies>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-compiler</artifactId>
+                <version>${scala.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
+                <version>${scala.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-actors</artifactId>
+                <version>${scala.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dxer.datalink</groupId>
+                <artifactId>datalink-parser</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dxer.datalink</groupId>
+                <artifactId>datalink-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dxer.datalink</groupId>
+                <artifactId>datalink-spark</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-hive_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-client</artifactId>
+                <version>${hbase.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-server</artifactId>
+                <version>${hbase.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>14.0.1</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>2.6.5</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>2.6.5</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4</artifactId>
+                <version>${antlr4.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-runtime</artifactId>
+                <version>${antlr4.version}</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest_${scala.binary.version}</artifactId>
+                <version>3.0.3</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!--<dependency>-->
+            <!--<groupId>org.reflections</groupId>-->
+            <!--<artifactId>reflections</artifactId>-->
+            <!--<version>0.9.11</version>-->
+            <!--</dependency>-->
+
+            <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>0.1.54</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-cli</groupId>
+                <artifactId>commons-cli</artifactId>
+                <version>1.2</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>2.2</version>
+                <scope>${dev.scope}</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+
     <build>
-        <!--<sourceDirectory>src/main/scala</sourceDirectory>-->
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.2.2</version>
                 <executions>
                     <execution>
+                        <id>eclipse-add-source</id>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-compile-first</id>
                         <goals>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile-first</id>
+                        <goals>
                             <goal>testCompile</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
-                    <args>
-                        <arg>-target:jvm-1.5</arg>
-                    </args>
+                    <recompileMode>incremental</recompileMode>
+                    <javacArgs>
+                        <javacArg>-source</javacArg>
+                        <javacArg>${java.version}</javacArg>
+                        <javacArg>-target</javacArg>
+                        <javacArg>${java.version}</javacArg>
+                        <javacArg>-Xlint:all,-serial,-path,-try</javacArg>
+                    </javacArgs>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
                 <configuration>
-                    <downloadSources>true</downloadSources>
-                    <buildcommands>
-                        <buildcommand>ch.epfl.lamp.sdt.core.scalabuilder</buildcommand>
-                    </buildcommands>
-                    <additionalProjectnatures>
-                        <projectnature>ch.epfl.lamp.sdt.core.scalanature</projectnature>
-                    </additionalProjectnatures>
-                    <classpathContainers>
-                        <classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
-                        <classpathContainer>ch.epfl.lamp.sdt.launching.SCALA_CONTAINER</classpathContainer>
-                    </classpathContainers>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <skipMain>true</skipMain> <!-- skip compile -->
+                    <skip>true</skip> <!-- skip testCompile -->
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${antlr4.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${mvn-assembly-plugin.version}</version>
+                <configuration>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.scalastyle</groupId>
+                <artifactId>scalastyle-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <verbose>false</verbose>
+                    <failOnViolation>true</failOnViolation>
+                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <failOnWarning>false</failOnWarning>
+                    <sourceDirectory>${basedir}/src/main/scala</sourceDirectory>
+                    <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
+                    <configLocation>scalastyle-config.xml</configLocation>
+                    <outputFile>${basedir}/target/scalastyle-output.xml</outputFile>
+                    <inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+                    <outputEncoding>${project.reporting.outputEncoding}</outputEncoding>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>add-source</goal>
+                            <goal>check</goal>
                         </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.basedir}/src/main/java/</source>
-                                <source>${project.basedir}/src/main/scala/</source>
-                                <source>${project.basedir}/src/main/antlr4/</source>
-                            </sources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
+            <!--<plugin>-->
+            <!--<groupId>org.apache.maven.plugins</groupId>-->
+            <!--<artifactId>maven-source-plugin</artifactId>-->
+            <!--<version>3.0.1</version>-->
+            <!--<configuration>-->
+            <!--<attach>true</attach>-->
+            <!--</configuration>-->
+            <!--<executions>-->
+            <!--<execution>-->
+            <!--<id>create-source-jar</id>-->
+            <!--<goals>-->
+            <!--<goal>jar-no-fork</goal>-->
+            <!--<goal>test-jar-no-fork</goal>-->
+            <!--</goals>-->
+            <!--</execution>-->
+            <!--</executions>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<assembly>
+    <id>dist</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <fileSets>
+
+        <fileSet>
+            <!--指定要包含的目录-->
+            <directory>${project.build.directory}/classes</directory>
+            <!--指定当前要包含的目录的目的地-->
+            <outputDirectory>${assembly.name}/resources</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.build.directory}/lib</directory>
+            <outputDirectory>${assembly.name}/lib</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.parent.basedir}/bin/</directory>
+            <outputDirectory>${assembly.name}/bin</outputDirectory>
+        </fileSet>
+
+        <!--<fileSet>-->
+        <!--<directory>${project.parent.basedir}/datalink-parser/target</directory>-->
+        <!--<outputDirectory>jars</outputDirectory>-->
+        <!--<includes>-->
+        <!--<include>*.jar</include>-->
+        <!--</includes>-->
+        <!--</fileSet>-->
+
+        <!--<fileSet>-->
+        <!--<directory>${project.parent.basedir}/datalink-core/target</directory>-->
+        <!--<outputDirectory>jars</outputDirectory>-->
+        <!--<includes>-->
+        <!--<include>*.jar</include>-->
+        <!--</includes>-->
+        <!--</fileSet>-->
+        <!--<fileSet>-->
+        <!--<directory>${project.parent.basedir}/datalink-spark/target</directory>-->
+        <!--<outputDirectory>jars</outputDirectory>-->
+        <!--<includes>-->
+        <!--<include>*.jar</include>-->
+        <!--</includes>-->
+        <!--</fileSet>-->
+
+
+        <!--plugin-->
+
+
+        <!--<fileSet>-->
+        <!--<directory>${project.basedir}/version</directory>-->
+        <!--<outputDirectory>${assembly.name}/</outputDirectory>-->
+        <!--<includes>-->
+        <!--<include>version.txt</include>-->
+        <!--</includes>-->
+        <!--</fileSet>-->
+
+
+    </fileSets>
+
+</assembly>

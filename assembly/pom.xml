@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>datalink</artifactId>
+        <groupId>io.dxer.datalink</groupId>
+        <version>0.1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>datalink-assembly</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <assembly.name>${parent.artifactId}-${parent.version}</assembly.name>
+        <skipDeploy>true</skipDeploy>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.dxer.datalink</groupId>
+            <artifactId>datalink-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dxer.datalink</groupId>
+            <artifactId>datalink-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dxer.datalink</groupId>
+            <artifactId>datalink-spark</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>test</id>
+            <activation>
+                <!--指定profile自动激活，如果POM中有任何一个profile通过以上其他任意一种方式被激活，所有默认激活配置都会失效-->
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <!--设置属性值，通过激活不同的profile来实现相同属性，不同属性值的替换-->
+            <properties>
+                <profile.name>test</profile.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <profile.name>dev</profile.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>stable</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profile.name>stable</profile.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>preonline</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <profile.name>preonline</profile.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>online</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <profile.name>online</profile.name>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-libs</id>
+                        <!--通过phase配置，将其绑定到process-resources生命周期阶段-->
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!--排除本项目-->
+                            <excludeGroupIds>io.dxer.datalink</excludeGroupIds>
+                            <!--排除所有scope为test的依赖-->
+                            <includeScope>runtime</includeScope>
+                            <!--依赖保存路径-->
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>copy-core</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.dxer.datalink</groupId>
+                                    <artifactId>datalink-parser</artifactId>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>io.dxer.datalink</groupId>
+                                    <artifactId>datalink-common</artifactId>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>io.dxer.datalink</groupId>
+                                    <artifactId>datalink-spark</artifactId>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>${parent.artifactId}-${project.version}</finalName>
+                    <descriptors>
+                        <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    </descriptors>
+                    <!--是否在包名尾部追加assembly.xml中定义的assembly id-->
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <!--打包文件保存路径，默认为target-->
+                    <outputDirectory>target</outputDirectory>
+                    <!--这样配置后，mvn deploy不会把assembly打的zip包上传到nexus-->
+                    <attach>false</attach>
+                </configuration>
+                <!--executions下每个execution可以用来配置执行一个任务-->
+                <executions>
+                    <execution>
+                        <!--通过phase配置，将其绑定到package生命周期阶段-->
+                        <phase>package</phase>
+                        <!--通过goals配置指定要执行的插件目标-->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
