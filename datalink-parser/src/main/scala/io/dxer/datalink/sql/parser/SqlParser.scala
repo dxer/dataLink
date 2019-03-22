@@ -13,12 +13,12 @@ class SqlParser {
 
   val astBuilder: AstBuilder = new AstBuilder
 
-  def buildSingleAst(sqlText: String): Statement = {
+  def buildSingleAst(sqlText: String): PreparedStatement = {
     try {
       val tree = getParseTree(sqlText)
       val statementsContext = tree.asInstanceOf[StatementsContext]
       Option(statementsContext.singleStatement.asScala(0))
-        .map(astBuilder.visitSingleStatement(_).asInstanceOf[Statement])
+        .map(st => PreparedStatement(astBuilder.visitSingleStatement(st).asInstanceOf[Statement], getStatementText(st)))
         .get
     } catch {
       case e: Exception =>
@@ -27,22 +27,22 @@ class SqlParser {
     }
   }
 
-  def buildAst(sqlText: String): List[Statement] = {
-    val statements = ListBuffer[Statement]()
+  def buildAst(sqlText: String): List[PreparedStatement] = {
+    val preparedStatement = ListBuffer[PreparedStatement]()
 
     try {
       val tree = getParseTree(sqlText)
       val statementsContext = tree.asInstanceOf[StatementsContext]
       statementsContext.singleStatement.asScala.foreach(statementContext => {
         var statement = astBuilder.visitSingleStatement(statementContext).asInstanceOf[Statement]
+        var sql = getStatementText(statementContext)
         if (statement == null) {
-          var sql = getStatementText(statementContext)
           if (sql.endsWith(";")) {
             sql = sql.substring(0, sql.length - 1)
           }
           statement = new OriginSQL(sql)
         }
-        statements += statement
+        preparedStatement += PreparedStatement(statement, sql)
       })
     } catch {
       case e: Exception =>
@@ -50,7 +50,7 @@ class SqlParser {
         throw new ParseException(e.getMessage, e)
     }
 
-    statements.toList
+    preparedStatement.toList
   }
 
   def getStatementText(singleStatementContext: SingleStatementContext): String = {
@@ -210,3 +210,6 @@ class PostProcessor extends SqlBaseBaseListener {
     parent.addChild(new TerminalNodeImpl(f(newToken)))
   }
 }
+
+
+case class PreparedStatement(statement: Statement, sql: String)

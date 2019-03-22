@@ -20,5 +20,6 @@ object Constants {
   val JDBC_DRIVER = "jdbc.driver"
 
 
-  val GROK_PATTERN = "grok.pattern"
+  val GROK_COMPILE_PATTERN = "grok.compile.pattern"
+  val GROK_ADD_PATTERN = "grok\\.add\\.pattern\\.(\\b\\w+\\b)"
 }

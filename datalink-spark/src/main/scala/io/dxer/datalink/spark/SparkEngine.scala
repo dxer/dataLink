@@ -10,8 +10,9 @@ class SparkEngine(dataLinkSparkSession: DataLinkSparkSession) extends DataLinkEn
     dataLinkSparkSession.sqlVerify(sqlText)
   }
 
-  override def executeStatement(statement: Statement): Unit = {
-    statement match {
+  override def executeStatement(statement: PreparedStatement): Unit = {
+    println(s"==> ${statement.sql}")
+    statement.statement match {
       case st: ConnectionStatement =>
         executeConnectionStatement(st)
 

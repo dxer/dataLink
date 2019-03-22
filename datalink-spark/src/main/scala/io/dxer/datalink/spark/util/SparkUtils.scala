@@ -13,7 +13,7 @@ object SparkUtils {
   def getFromRow(row: Row, dataType: DataType, index: Int): Any = {
     dataType match {
       case StringType =>
-        if (row.isNullAt(index) == null) "" else row.getString(index)
+        if (row.isNullAt(index)) "" else row.getString(index)
       case LongType =>
         row.getLong(index)
       case FloatType =>

@@ -16,7 +16,7 @@ abstract class DataLinkEngine(dataLinkSession: DataLinkSession) {
 
   private val LINE_SPLIT = "(\\s*\\r\\n)|(\\s*\\n)"
 
-  def getStatements(sqlText: String): List[Statement] = {
+  def getPreparedStatements(sqlText: String): List[PreparedStatement] = {
     val lines = sqlText.split(LINE_SPLIT, -1)
     val sb = new StringBuffer()
     lines.foreach(sql => {
@@ -28,14 +28,14 @@ abstract class DataLinkEngine(dataLinkSession: DataLinkSession) {
     })
 
     if (Strings.isNullOrEmpty(sb.toString)) {
-      return List[Statement]()
+      return List[PreparedStatement]()
     }
 
     parser.buildAst(sb.toString)
   }
 
   def execute(sqlText: String): Unit = {
-    val statements = getStatements(sqlText)
+    val statements = getPreparedStatements(sqlText)
     statements.foreach(st => {
       if (!st.isInstanceOf[OriginSQL] ||
         (st.isInstanceOf[OriginSQL] && originalSqlVerify(st.asInstanceOf[OriginSQL].sql))) {
@@ -48,7 +48,7 @@ abstract class DataLinkEngine(dataLinkSession: DataLinkSession) {
 
   def originalSqlVerify(sqlText: String): Boolean = true
 
-  def executeStatement(statement: Statement): Unit
+  def executeStatement(statement: PreparedStatement): Unit
 
   def executeCommand(command: RunnableCommand): Unit = {
     runner.tryExecute(command, dataLinkSession)

@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -18,7 +19,8 @@ import java.util.regex.Pattern;
  * @author linghf
  * @create 2017-09-26 8:37
  **/
-public class Grok {
+public class Grok implements Serializable {
+
     private Pattern pattern;
 
     private List<String> fields = Lists.newArrayList();
@@ -91,7 +93,6 @@ public class Grok {
 
     public Pattern compile(String expression) {
         String regex = compileExpression(expression);
-        System.out.println(regex);
         pattern = Pattern.compile(regex);
         return pattern;
     }

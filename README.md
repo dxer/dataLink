@@ -9,14 +9,18 @@ DataLink是一个基于**Spark+SparkSQL**实现的应用程序，实现了对Spa
 
 - `-e`：直接运行
 - `-f`：运行sql脚本
-- `-s`：启动内置httpserver，通过http请求完成相应的etl操作
 
 ```sql
 # -e模式
-spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/sparketl-1.0-SNAPSHOT.jar -e "select phone from t_app_userinfo as user;"
+./datalink.sh -e "select phone from t_app_userinfo as user;"
 
 # -f模式
-spark-submit --master yarn --deploy-mode client --class io.dxer.etl.ETLApp /home/hadoop/app/sparketl-1.0-SNAPSHOT.jar -f /home/hadoop/app/etl.sql
+./datalink.sh -f /home/hadoop/app/etl.sql
+```
+
+## 基本语法
+```sql
+
 ```
 
 ## SQL扩展
