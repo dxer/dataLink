@@ -1,6 +1,7 @@
 package io.dxer.datalink.spark.sql.execution
 
 import java.util.Properties
+import java.util.regex.Pattern
 
 import com.google.common.base.Strings
 import io.dxer.datalink.grok.Grok
@@ -71,20 +72,37 @@ abstract class LoadCommand extends RunnableCommand {
     }
   }
 
+
+  def addGrokPattern(grok: Grok, properties: Properties): Unit = {
+    val patternEx = Pattern.compile(Constants.GROK_ADD_PATTERN)
+    if (properties == null) {
+      return
+    }
+    properties.foreach(x => {
+      val matcher = patternEx.matcher(x._1)
+      if (matcher.find()) {
+        grok.addPattern(matcher.group(1), x._2)
+      }
+    })
+  }
+
   def buildDataFrameFromText(sparkSession: SparkSession,
                              path: String,
                              properties: Properties): DataFrame = {
-    val pattern = if (properties.contains(Constants.GROK_PATTERN))
-      properties.getProperty(Constants.GROK_PATTERN)
-    else null
+    val pattern: String =
+      if (properties != null && properties.containsKey(Constants.GROK_COMPILE_PATTERN))
+        properties.getProperty(Constants.GROK_COMPILE_PATTERN)
+      else ""
 
-    require(!Strings.isNullOrEmpty(pattern), "grok.pattern is null")
+    require(!Strings.isNullOrEmpty(pattern), s"${Constants.GROK_COMPILE_PATTERN} is null")
 
     val grok = new Grok
+    addGrokPattern(grok, properties)
+
     grok.compile(pattern)
     val gFields = grok.getFields().toSeq
 
-    require(gFields != null && gFields.size > 0, "grok.pattern field is null")
+    require(gFields != null && gFields.size > 0, s"${Constants.GROK_COMPILE_PATTERN} field is null")
 
     val dataset = sparkSession.sparkContext.textFile(path)
 
