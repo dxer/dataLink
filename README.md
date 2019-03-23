@@ -86,7 +86,7 @@ show connections;
 **语法**
 
 ```sql
-load [local] <format>.<path> as <table>
+load [local] <format>.<path> options(key=value) as <table>
 ```
 
 相关参数解释：
@@ -94,11 +94,14 @@ load [local] <format>.<path> as <table>
 - format：数据源格式，支持如下格式：
   - parquet：列式存储格式文件
   - json：json格式文件
-  - csv/tsv/text：csv格式文件
+  - csv/tsv：csv格式文件
     - delimiter：指定分隔符,csv默认分隔符为","，tsv默认分隔符为"\t"，text需要自定义
     - header：是否设置头部信息
     - inferSchema：推断数据类型
     - colNames：指定列名，中间使用`","`进行分割
+  - txt: 文本文件
+    - grok.compile.pattern：grok解析
+    - grok.add.pattern.[patternname]: 添加grok pattern
   - jdbc：理论支持所有可以通过jdbc方式访问的数据库，需要提供jdbc驱动
     - driver：数据库驱动
     - url：访问数据库url
