@@ -43,7 +43,7 @@ statement
         connectionType '.' name=IDENTIFIER WITH? properties                                 #createConnection
     | DROP TEMPORARY?  CONNECTION  (IF EXISTS)? connectionType '.' name=IDENTIFIER          #dropConnection
     | SHOW CREATE CONNECTION connectionType '.' name=IDENTIFIER                             #showCreateConnection
-    | SHOW CONNECTIONS (IN connectionType (LIKE pattern=STRING)?)?                          #showConnections
+    | SHOW CONNECTIONS (IN identifier (LIKE pattern=STRING)?)?                          #showConnections
     | LOAD DATA LOCAL? format '.' path (OPTIONS options=properties)?
        ((OVERWRITE? INTO) | AS) tableName=tableIdentifier partitionSpec?                    #loadTable
     | INSERT OVERWRITE LOCAL? format '.' path (OPTIONS options=properties)?

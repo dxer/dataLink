@@ -13,6 +13,10 @@ class SqlParser {
 
   val astBuilder: AstBuilder = new AstBuilder
 
+  def getStatement(sqlTest: String): Statement = {
+    buildSingleAst(sqlTest).statement
+  }
+
   def buildSingleAst(sqlText: String): PreparedStatement = {
     try {
       val tree = getParseTree(sqlText)

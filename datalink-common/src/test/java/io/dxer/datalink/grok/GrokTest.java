@@ -26,4 +26,16 @@ public class GrokTest {
         assert result.getCapture().get("a").equals("2019-03-18 00:00:02\t");
     }
 
+    @Test
+    public void test2(){
+        grok.addPattern("TEST", ".*");
+        grok.addPattern("Num", "\\d+");
+
+        String str = "zhangsan;12";
+        grok.compile("%{TEST:a};%{Num:b}");
+
+        MatchResult result = grok.match(str);
+        result.printResults();
+    }
+
 }

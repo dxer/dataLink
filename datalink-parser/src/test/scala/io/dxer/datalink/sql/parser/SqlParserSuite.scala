@@ -1,5 +1,6 @@
 package io.dxer.datalink.sql.parser
 
+import org.antlr.v4.runtime.ParserRuleContext
 import org.scalatest.FunSuite
 
 class SqlParserSuite extends FunSuite {
@@ -28,18 +29,18 @@ class SqlParserSuite extends FunSuite {
 
   test("show create connection") {
     val sql = "show create connection jdbc.oracle_db;"
-    val showConnection = parser.buildSingleAst(sql).asInstanceOf[ShowConnection]
+    val showConnection = parser.buildSingleAst(sql).asInstanceOf[ShowCreateConnection]
     assert(showConnection.connectionType.equals("JDBC"))
     assert(showConnection.name.equals("oracle_db"))
   }
 
   test("show connections") {
     var sql = "show connections;"
-    var conns = parser.buildSingleAst(sql).asInstanceOf[ListConnections]
+    var conns = parser.buildSingleAst(sql).asInstanceOf[ShowConnections]
     assert(conns != null)
 
     sql = "show connections in JDBC like 'test*';"
-    conns = parser.buildSingleAst(sql).asInstanceOf[ListConnections]
+    conns = parser.buildSingleAst(sql).asInstanceOf[ShowConnections]
     assert(conns != null)
     assert(conns.connectionType.equals("JDBC"))
     assert(conns.pattern.equals("test*"))
@@ -48,7 +49,7 @@ class SqlParserSuite extends FunSuite {
 
   test("load as table") {
     val sql = "load data oracle_db.`mk.t_province_code` as ttt;"
-    val table: LoadAsTable = parser.buildSingleAst(sql).asInstanceOf[LoadAsTable]
+    val table: LoadTable = parser.buildSingleAst(sql).asInstanceOf[LoadTable]
     assert(table != null)
     assert(table.format.equals("oracle_db"))
     assert(table.path.equals("mk.t_province_code"))
@@ -78,7 +79,7 @@ class SqlParserSuite extends FunSuite {
     assert(v.tableName.equals("test"))
   }
 
-  test("insert into from sql"){
+  test("insert into from sql") {
     val sql = "insert overwrite parquet.`/tmp/test` from select * from test;"
     val v = parser.buildSingleAst(sql).asInstanceOf[InsertInto]
     assert(v != null)
@@ -90,6 +91,19 @@ class SqlParserSuite extends FunSuite {
     val sql = "show tables;"
     val v = parser.buildSingleAst(sql)
     println(v)
+  }
+
+  test("txt_grok_test") {
+    val sql = "load data txt.`/data/test1.txt` \noptions(grok.compile.pattern='%{test:a};%{test1:b}', grok.add.pattern.test='.*', grok.add.pattern.test1='\\d+') as test;"
+    println(sql)
+    val table = parser.buildSingleAst(sql).asInstanceOf[LoadTable]
+    println(table.properties)
+  }
+
+  test("get sql") {
+    val sql = "insert overwrite parquet.`/tmp/test` from select * from test;"
+    val v = parser.buildSingleAst(sql).asInstanceOf[ParserRuleContext]
+    println(ParserUtils.getOriginalText(v))
   }
 
 }

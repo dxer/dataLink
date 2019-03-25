@@ -4,7 +4,7 @@
 #
 #fi
 
-SPARK_HOME=
+#SPARK_HOME=
 
 CLASSPATH=
 for i in $(ls `pwd`/lib/*.jar)
@@ -12,6 +12,7 @@ do
   CLASSPATH="${CLASSPATH}:${i}"
 done
 
-${SPARH_HOME}/bin/spark-submit --master local[*] --jars ${CLASSPATH} $@   \
-  --class io.dxer.datalink.spark.DataLinkSparkApp  $@
+CLASS="io.dxer.datalink.spark.DataLinkSparkApp"
+
+${SPARH_HOME}/bin/spark-submit --class "${CLASS}" --jars ${CLASSPATH}  "$@"
 

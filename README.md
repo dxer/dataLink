@@ -44,7 +44,7 @@ select max(cast (age as int)) as maxAge from test;
 **语法**
 
 ```mysql
-create [ConnectionType] [temporary] connection [name] (key=value）;
+create [temporary] connection <ConnectionType>.<name> (key=value);
 ```
 
 相关参数解释：
@@ -62,16 +62,16 @@ create [ConnectionType] [temporary] connection [name] (key=value）;
 
 ```mysql
 -- 创建connection
-create jdbc connection oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.1.101:1521:dcdb', user='test', password='test'）;
+create connection jdbc.oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.1.101:1521:dcdb', user='test', password='test');
 
 -- 创建临时connection
-create temporary jdbc connection oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.132.149:1521:dcdb', user='admin', password='admin'）;
+create temporary connection jdbc.oracle (driver='oracle.jdbc.driver.OracleDriver', url='jdbc:oracle:thin:@192.168.132.149:1521:dcdb', user='admin', password='admin');
 
--- 删除connect
-drop connect oracle;
+-- 删除connection
+drop connection jdbc.oracle;
 
--- 查看connect配置信息
-show create connection oracle;
+-- 查看具体connection配置信息
+show create connection jdbc.oracle;
 
 -- 查看所有connections
 show connections;
@@ -101,7 +101,7 @@ load [local] <format>.<path> options(key=value) as <table>
     - colNames：指定列名，中间使用`","`进行分割
   - txt: 文本文件
     - grok.compile.pattern：grok解析
-    - grok.add.pattern.[patternname]: 添加grok pattern
+    - grok.add.pattern.[pattern-name]: 添加grok pattern
   - jdbc：理论支持所有可以通过jdbc方式访问的数据库，需要提供jdbc驱动
     - driver：数据库驱动
     - url：访问数据库url
@@ -121,10 +121,8 @@ load [local] <format>.<path> options(key=value) as <table>
 例子：
 
 ```sql
-load [local] <format>.`<path>` [with properties] as <table> 
-
 # 通过connection加载数据到临时表
-load oracle.`ods.t_province_code` as ttt;
+load oracle.`ods.t_province_code` as test;
 
 # Pushdown模式
 load oracle.`(select * from hadoop.t_province_code where P_CODE>'791') t_province_code_alias` as t_province_code;
@@ -163,7 +161,7 @@ select * from hadoop.t_flow limit 10 as tmp_flow;
 
 **语法：**
 
-```mssql
+```mysql
 insert [savemode] [local] <format>.<path> [properties] from <table | sql>
 ```
 相关参数解释：

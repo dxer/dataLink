@@ -74,11 +74,11 @@ class AstBuilder extends SqlBaseBaseVisitor[Node] {
     * {@link #visitChildren} on {@code ctx}.</p>
     */
   override def visitShowConnections(ctx: ShowConnectionsContext): Node = {
-    val connectionType = if (ctx.connectionType != null)
-      ctx.connectionType.getText else ""
+    val connectionType = if (ctx.identifier() != null)
+      ctx.identifier().getText else ""
 
-    new ListConnections(getLocation(ctx),
-      connectionType.toUpperCase,
+    new ShowConnections(getLocation(ctx),
+      connectionType,
       unQuote(string(ctx.pattern)))
   }
 

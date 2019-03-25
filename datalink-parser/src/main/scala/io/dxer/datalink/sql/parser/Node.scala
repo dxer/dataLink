@@ -25,26 +25,26 @@ class Statements(location: NodeLocation, statementList: List[Statement]) extends
   }
 }
 
-trait ConnectionStatement
+abstract class ConnectionStatement(location: NodeLocation) extends Statement(Option(location))
 
 class CreateConnection(location: NodeLocation,
                        val isTemp: Boolean,
                        val connectionType: String,
                        val name: String,
-                       val properties: Properties) extends Statement(Option(location)) with ConnectionStatement
+                       val properties: Properties) extends ConnectionStatement(location)
 
 class DropConnection(location: NodeLocation,
                      val isTemp: Boolean,
                      val connectionType: String,
-                     val name: String) extends Statement(Option(location)) with ConnectionStatement
+                     val name: String) extends ConnectionStatement(location)
 
 class ShowCreateConnection(location: NodeLocation,
                            val connectionType: String,
-                           val name: String) extends Statement(Option(location)) with ConnectionStatement
+                           val name: String) extends ConnectionStatement(location)
 
-class ListConnections(location: NodeLocation,
+class ShowConnections(location: NodeLocation,
                       val connectionType: String,
-                      val pattern: String) extends Statement(Option(location)) with ConnectionStatement
+                      val pattern: String) extends ConnectionStatement(location)
 
 case class TableIdentifier(table: String, database: Option[String]) {
   def this(table: String) = this(table, None)
