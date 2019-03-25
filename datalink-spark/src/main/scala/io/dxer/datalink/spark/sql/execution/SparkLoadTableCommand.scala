@@ -4,7 +4,6 @@ import java.util.Properties
 import java.util.regex.Pattern
 
 import com.google.common.base.Strings
-import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.grok.Grok
 import io.dxer.datalink.spark.util.SparkUtils
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
@@ -30,7 +29,7 @@ class SparkLoadTableCommand(loadTable: LoadTable) extends LoadTableCommand(loadT
 
     // check table exists
     if (dataLinkSparkSession.checkTableExists(sparkSession, tableName)) {
-      throw new DataLinkException(s"${tableName} is exists")
+      throw new SparkException(s"${tableName} is exists")
     }
 
     val connectionManager = dataLinkSession.connectionManager
@@ -63,7 +62,7 @@ class SparkLoadTableCommand(loadTable: LoadTable) extends LoadTableCommand(loadT
       case _ if inputFormat != null =>
         inputFormat.run(loadTable)
 
-      case _ => throw new DataLinkException("Unsupported SQL format")
+      case _ => throw new SparkException("Unsupported SQL format")
     }
 
     df.createOrReplaceTempView(tableName)
@@ -84,7 +83,7 @@ class SparkLoadTableCommand(loadTable: LoadTable) extends LoadTableCommand(loadT
     require(!Strings.isNullOrEmpty(tableName), "LoadIntoTable tableName is null")
 
     if (!dataLinkSparkSession.checkTableExists(sparkSession, tableName)) {
-      throw new DataLinkException(s"${tableName} is not exists")
+      throw new SparkException(s"${tableName} is not exists")
     }
 
     val reader = sparkSession.sqlContext.read
@@ -113,7 +112,7 @@ class SparkLoadTableCommand(loadTable: LoadTable) extends LoadTableCommand(loadT
       case _ if inputFormat != null =>
         inputFormat.run(loadTable)
 
-      case _ => throw new DataLinkException("Unsupported SQL format")
+      case _ => throw new SparkException("Unsupported SQL format")
     }
 
     val tmpTable = s"tmp_${tableName}_${System.currentTimeMillis()}"

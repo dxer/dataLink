@@ -1,7 +1,6 @@
 package io.dxer.datalink.spark.sql.execution
 
 import com.google.common.base.Strings
-import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
 import io.dxer.datalink.sql.DataLinkSession
 import io.dxer.datalink.sql.execution.InsertIntoCommand
@@ -63,7 +62,7 @@ class SparkInsertIntoCommand(insertInto: InsertInto) extends InsertIntoCommand(i
 
       case Constants.JDBC =>
       //        write.jdbc()
-      case _ => throw new DataLinkException(s"InsertInto Not support format: ${format}")
+      case _ => throw new SparkException(s"InsertInto Not support format: ${format}")
     }
 
   }
