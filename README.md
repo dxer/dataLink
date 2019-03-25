@@ -3,6 +3,21 @@
 
 DataLink是一个基于**Spark+SparkSQL**实现的应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`Load`，`QueryASTable`、`InsertInto`等操作的支持，可以通过编写sql语句的方式来完成更多的ETL操作。
 
+## 编译
+
+1. clone项目
+```bash
+git clone https://github.com/dxer/DataLink.git
+```
+
+2. 编译
+```bash
+cd DataLink
+mvn clean package -Dmaven.test.skip=true 
+# 或
+mvn clean package
+```
+
 ##  运行方式
 
 支持三种运行模式，在运行时，只能指定一种运行模式：
