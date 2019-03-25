@@ -39,16 +39,15 @@ singleExpression
 
 statement
     : query                                                                                 #queryStatement
-    | CREATE TEMPORARY? CONNECTION connectionType '.' name=IDENTIFIER WITH? properties      #createConnection
-    | DROP TEMPORARY?  CONNECTION connectionType '.' name=IDENTIFIER                        #dropConnection
-    | SHOW CREATE CONNECTION connectionType '.' name=IDENTIFIER                             #showConnection
-    | SHOW CONNECTIONS (IN connectionType (LIKE pattern=STRING)?)?                          #listConnections
-    | LOAD DATA format '.' path (OPTIONS options=properties)?
-        AS tableName=tableIdentifier partitionSpec?                                         #loadAsTable
-    | LOAD DATA format '.' path (OPTIONS options=properties)?
-        INSERT OVERWRITE? INTO tableName=tableIdentifier partitionSpec?                     #loadIntoTable
-    | insertInto FROM query                                                                 #insertIntoFromSql
-    | insertInto FROM tableName=tableIdentifier                                             #insertIntoFromTable
+    | CREATE TEMPORARY? CONNECTION (IF NOT EXISTS)?
+        connectionType '.' name=IDENTIFIER WITH? properties                                 #createConnection
+    | DROP TEMPORARY?  CONNECTION  (IF EXISTS)? connectionType '.' name=IDENTIFIER          #dropConnection
+    | SHOW CREATE CONNECTION connectionType '.' name=IDENTIFIER                             #showCreateConnection
+    | SHOW CONNECTIONS (IN connectionType (LIKE pattern=STRING)?)?                          #showConnections
+    | LOAD DATA LOCAL? format '.' path (OPTIONS options=properties)?
+       ((OVERWRITE? INTO) | AS) tableName=tableIdentifier partitionSpec?                    #loadTable
+    | INSERT OVERWRITE LOCAL? format '.' path (OPTIONS options=properties)?
+       (query | tableName=identifier)                                                                 #insertInto
     | query AS tableName=identifier                                                         #queryAsTable
     | EXEC func=identifier funcParams                                                       #execFunc
     | ~(';')*                                                                               #test
@@ -62,13 +61,8 @@ query
     : SELECT ~(';')*
     ;
 
-insertInto
-    : INSERT OVERWRITE LOCAL? format '.' path (OPTIONS options=properties)?
-    ;
-
-
 connectionType
-    : JDBC | HBASE | FTP | SSH | MAIL | REDIS
+    : JDBC | HBASE | FTP | SFTP | SSH | MAIL | REDIS
     ;
 
 format
@@ -230,6 +224,7 @@ EXEC: 'EXEC';
 JDBC: 'JDBC';
 HBASE: 'HBASE';
 FTP: 'FTP';
+SFTP: 'SFTP';
 SSH: 'SSH';
 MAIL: 'MAIL';
 REDIS: 'REDIS';

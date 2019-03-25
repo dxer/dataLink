@@ -38,9 +38,9 @@ class DropConnection(location: NodeLocation,
                      val connectionType: String,
                      val name: String) extends Statement(Option(location)) with ConnectionStatement
 
-class ShowConnection(location: NodeLocation,
-                     val connectionType: String,
-                     val name: String) extends Statement(Option(location)) with ConnectionStatement
+class ShowCreateConnection(location: NodeLocation,
+                           val connectionType: String,
+                           val name: String) extends Statement(Option(location)) with ConnectionStatement
 
 class ListConnections(location: NodeLocation,
                       val connectionType: String,
@@ -59,37 +59,15 @@ case class TableIdentifier(table: String, database: Option[String]) {
 }
 
 class LoadTable(location: NodeLocation,
-                format: String,
-                path: String,
-                properties: Properties,
-                tableIdentifier: TableIdentifier,
-                partitionSpec: Map[String, String]) extends Statement(Option(location))
+                val local: Boolean,
+                val format: String,
+                val path: String,
+                val properties: Properties,
+                val isIntoTable: Boolean,
+                val isOverWrite: Boolean,
+                val tableIdentifier: TableIdentifier,
+                val partitionSpec: Map[String, String]) extends Statement(Option(location))
 
-class LoadAsTable(location: NodeLocation,
-                  var format: String,
-                  var path: String,
-                  var properties: Properties,
-                  var tableIdentifier: TableIdentifier,
-                  var partitionSpec: Map[String, String] = null
-                 ) extends LoadTable(location, format, path, properties, tableIdentifier, partitionSpec) {
-
-  //  def this(location: NodeLocation, format: String,
-  //           path: String, properties: Properties, tableIdentifier: TableIdentifier, partitionSpec: Map[String, String]) {
-  //    this(location, false, format, path, properties, tableIdentifier, partitionSpec)
-  //  }
-
-}
-
-
-class LoadIntoTable(location: NodeLocation,
-                    var format: String,
-                    var path: String,
-                    var properties: Properties,
-                    var isOverwrite: Boolean,
-                    var tableIdentifier: TableIdentifier,
-                    var partitionSpec: Map[String, String] = null
-                   ) extends LoadTable(location, format, path, properties, tableIdentifier, partitionSpec) {
-}
 
 class InsertInto(location: NodeLocation,
                  val isOverWrite: Boolean,

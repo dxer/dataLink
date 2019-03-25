@@ -16,11 +16,8 @@ class SparkEngine(dataLinkSparkSession: DataLinkSparkSession) extends DataLinkEn
       case st: ConnectionStatement =>
         executeConnectionStatement(st)
 
-      case st: LoadAsTable =>
+      case st: LoadTable =>
         executeCommand(new LoadAsTableCommand(st))
-
-      case st: LoadIntoTable =>
-        executeCommand(new LoadIntoTableCommand(st))
 
       case st: InsertInto =>
         executeCommand(new InsertIntoCommand(st))

@@ -4,18 +4,160 @@ import java.util.Properties
 import java.util.regex.Pattern
 
 import com.google.common.base.Strings
+import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.grok.Grok
-import io.dxer.datalink.spark.Constants
-import io.dxer.datalink.sql.ConnectionManager
+import io.dxer.datalink.spark.util.SparkUtils
+import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
 import io.dxer.datalink.sql.execution.RunnableCommand
-import io.dxer.datalink.util.Utils
+import io.dxer.datalink.sql.parser.LoadTable
+import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
+import io.dxer.datalink.util.{PropertiesUtils, Utils}
 import org.apache.spark.SparkException
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SparkSession}
 
 import scala.collection.JavaConversions._
 
-abstract class LoadCommand extends RunnableCommand {
+class LoadTableCommand(loadTable: LoadTable) extends RunnableCommand {
+
+  override def run(dataLinkSession: DataLinkSession): Unit = {
+    loadTable.isIntoTable match {
+      case true => loadIntoTable(dataLinkSession, loadTable)
+      case _ => loadAsTable(dataLinkSession, loadTable)
+    }
+  }
+
+  private def loadAsTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
+    val dataLinkSparkSession = dataLinkSession.asInstanceOf[DataLinkSparkSession]
+    val sparkSession = dataLinkSparkSession.sparkSession
+
+    val tableName = loadTable.tableIdentifier.getTableName()
+
+    require(!Strings.isNullOrEmpty(tableName), "LoadAsTable tableName is null")
+
+    // check table exists
+    if (dataLinkSparkSession.checkTableExists(sparkSession, tableName)) {
+      throw new DataLinkException(s"${tableName} is exists")
+    }
+
+    val connectionManager = dataLinkSession.connectionManager
+
+    val reader = sparkSession.sqlContext.read
+
+    val inputFormat = getInputFormat(PropertiesUtils.getString(loadTable.properties, "inputFormatClass"))
+
+    val format = loadTable.format.toLowerCase
+
+    val df: DataFrame = format match {
+      case Constants.HIVE =>
+        sparkSession.table(loadTable.path)
+
+      case Constants.JDBC =>
+        buildDataFrameFromJDBC(connectionManager, reader, loadTable.path, loadTable.properties)
+
+      case Constants.PARQUET | Constants.ORC | Constants.JSON | Constants.AVRO => // parquet/orc/json file
+        reader.format(format).load(loadTable.path)
+
+      case Constants.CSV | Constants.TSV => // csv/tsv
+        buildDataFrameFromText(reader, format, loadTable.path, loadTable.properties)
+
+      case Constants.TXT =>
+        buildDataFrameFromText(sparkSession, loadTable.path, loadTable.properties)
+
+      case Constants.HBASE => // hbase
+        buildDataFrameFromHBase(reader, loadTable.path, loadTable.properties)
+
+      case _ if inputFormat != null =>
+        inputFormat.run(loadTable)
+
+      case _ => throw new DataLinkException(s"LoadAsTable Not support format: ${loadTable.format}")
+    }
+
+    df.createOrReplaceTempView(tableName)
+
+    val fieldNames = List[String]("Column", "Type", "Null")
+    val data = df.schema.map(f => List(f.name, f.dataType.typeName, f.nullable.toString)).toList
+    SparkUtils.toResult(fieldNames, data)
+
+    df.show()
+  }
+
+  private def loadIntoTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
+    val dataLinkSparkSession = dataLinkSession.asInstanceOf[DataLinkSparkSession]
+    val sparkSession = dataLinkSparkSession.sparkSession
+
+    val tableName = loadTable.tableIdentifier.getTableName()
+
+    require(!Strings.isNullOrEmpty(tableName), "LoadIntoTable tableName is null")
+
+    if (!dataLinkSparkSession.checkTableExists(sparkSession, tableName)) {
+      throw new DataLinkException(s"${tableName} is not exists")
+    }
+
+    val reader = sparkSession.sqlContext.read
+
+    val inputFormat = getInputFormat(PropertiesUtils.getString(loadTable.properties, "inputFormatClass"))
+
+    val format = loadTable.format.toLowerCase
+
+    var df: DataFrame = format match {
+      case Constants.HIVE =>
+        sparkSession.table(loadTable.path)
+
+      case Constants.JDBC =>
+        buildDataFrameFromJDBC(dataLinkSession.connectionManager,
+          reader, loadTable.path, loadTable.properties)
+
+      case Constants.PARQUET | Constants.ORC | Constants.JSON =>
+        reader.format(format).load(loadTable.path)
+
+      case Constants.CSV | Constants.TSV =>
+        buildDataFrameFromText(reader, loadTable.format, loadTable.path, loadTable.properties)
+
+      case Constants.HBASE =>
+        buildDataFrameFromHBase(reader, loadTable.path, loadTable.properties)
+
+      case _ if inputFormat != null =>
+        inputFormat.run(loadTable)
+
+      case _ => throw new DataLinkException("")
+    }
+
+    val tmpTable = s"tmp_${tableName}_${System.currentTimeMillis()}"
+    df.createOrReplaceTempView(tableName)
+    df.printSchema()
+
+    val columns = df.schema.map(f => {
+      f.name
+    }).toList.mkString(", ")
+
+    var enableDynamicPartition = false
+    val partitions = if (loadTable.partitionSpec != null && !loadTable.partitionSpec.isEmpty) {
+      loadTable.partitionSpec.map(p => {
+        if (!Strings.isNullOrEmpty(p._1) && !Strings.isNullOrEmpty(p._2)) {
+          s"${p._1}='${p._2}'"
+        } else if (!Strings.isNullOrEmpty(p._1) && Strings.isNullOrEmpty(p._2)) {
+          enableDynamicPartition = true
+          s"${p._1}"
+        } else ""
+      }).mkString(", ")
+    } else ""
+
+    val insertMode = if (loadTable.isOverWrite) "OVERWRITE" else "INTO"
+
+    if (enableDynamicPartition) {
+      sparkSession.sql("set hive.exec.dynamic.partition.mode=nonstrict")
+    }
+
+    df = sparkSession.sql(s"insert ${insertMode} table ${tableName} ${partitions} select ${columns} from ${tmpTable}")
+
+    if (enableDynamicPartition) {
+      sparkSession.sql("set hive.exec.dynamic.partition.mode=strict")
+    }
+
+    SparkUtils.toResult(df)
+  }
+
 
   private def tmpTableName = s"tmp_table_${System.currentTimeMillis()}"
 

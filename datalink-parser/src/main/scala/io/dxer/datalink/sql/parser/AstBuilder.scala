@@ -61,8 +61,8 @@ class AstBuilder extends SqlBaseBaseVisitor[Node] {
     * <p>The default implementation returns the result of calling
     * {@link #visitChildren} on {@code ctx}.</p>
     */
-  override def visitShowConnection(ctx: ShowConnectionContext): Node = {
-    new ShowConnection(getLocation(ctx),
+  override def visitShowCreateConnection(ctx: ShowCreateConnectionContext): Node = {
+    new ShowCreateConnection(getLocation(ctx),
       ctx.connectionType.getText.toUpperCase,
       string(ctx.name))
   }
@@ -73,7 +73,7 @@ class AstBuilder extends SqlBaseBaseVisitor[Node] {
     * <p>The default implementation returns the result of calling
     * {@link #visitChildren} on {@code ctx}.</p>
     */
-  override def visitListConnections(ctx: ListConnectionsContext): Node = {
+  override def visitShowConnections(ctx: ShowConnectionsContext): Node = {
     val connectionType = if (ctx.connectionType != null)
       ctx.connectionType.getText else ""
 
@@ -89,27 +89,13 @@ class AstBuilder extends SqlBaseBaseVisitor[Node] {
     * <p>The default implementation returns the result of calling
     * {@link #visitChildren} on {@code ctx}.</p>
     */
-  override def visitLoadAsTable(ctx: SqlBaseParser.LoadAsTableContext): Node = {
-    new LoadAsTable(getLocation(ctx),
+  override def visitLoadTable(ctx: LoadTableContext): Node = {
+    new LoadTable(getLocation(ctx),
+      ctx.LOCAL() != null,
       ctx.format().getText,
       ctx.path().getText,
       getProperties(ctx.properties()),
-      getTableIdentifier(ctx.tableIdentifier()),
-      getPartitionSpec(ctx.partitionSpec()))
-  }
-
-
-  /**
-    * {@inheritDoc }
-    *
-    * <p>The default implementation returns the result of calling
-    * {@link #visitChildren} on {@code ctx}.</p>
-    */
-  override def visitLoadIntoTable(ctx: LoadIntoTableContext): Node = {
-    new LoadIntoTable(getLocation(ctx),
-      ctx.format().getText,
-      ctx.path().getText,
-      getProperties(ctx.properties()),
+      ctx.AS() != null,
       ctx.OVERWRITE() != null,
       getTableIdentifier(ctx.tableIdentifier()),
       getPartitionSpec(ctx.partitionSpec()))
@@ -122,38 +108,17 @@ class AstBuilder extends SqlBaseBaseVisitor[Node] {
     * <p>The default implementation returns the result of calling
     * {@link #visitChildren} on {@code ctx}.</p>
     */
-  override def visitInsertIntoFromSql(ctx: InsertIntoFromSqlContext): Node = {
-    val insertIntoContext = ctx.insertInto()
+  override def visitInsertInto(ctx: InsertIntoContext): Node = {
     new InsertInto(getLocation(ctx),
-      insertIntoContext.OVERWRITE() != null,
-      insertIntoContext.LOCAL() != null,
-      insertIntoContext.format().getText,
-      insertIntoContext.path().getText,
-      getProperties(insertIntoContext.properties()),
-      null,
+      ctx.OVERWRITE() != null,
+      ctx.LOCAL() != null,
+      ctx.format().getText,
+      ctx.path().getText,
+      getProperties(ctx.properties()),
+      ctx.tableName.getText,
       getOriginalText(ctx.query())
     )
   }
-
-  /**
-    * {@inheritDoc }
-    *
-    * <p>The default implementation returns the result of calling
-    * {@link #visitChildren} on {@code ctx}.</p>
-    */
-  override def visitInsertIntoFromTable(ctx: InsertIntoFromTableContext): Node = {
-    val insertIntoContext = ctx.insertInto()
-    new InsertInto(getLocation(ctx),
-      insertIntoContext.OVERWRITE() != null,
-      insertIntoContext.LOCAL() != null,
-      insertIntoContext.format().getText,
-      insertIntoContext.path().getText,
-      getProperties(insertIntoContext.properties()),
-      ctx.tableName.getText,
-      null
-    )
-  }
-
 
   /**
     * {@inheritDoc }

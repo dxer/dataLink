@@ -27,20 +27,17 @@ class InsertIntoCommand(insertInto: InsertInto) extends RunnableCommand {
       throw new SparkException(s"table or query is not null")
     }
 
-    val df = if (!Strings.isNullOrEmpty(insertInto.query)) {
-      sparkSession.sql(insertInto.query)
-    } else if (dataLinkSparkSession.checkTableExists(sparkSession, insertInto.tableName)) {
-      sparkSession.table(insertInto.tableName)
-    } else {
-      throw new SparkException(s"${insertInto.tableName} is not exist")
+    val df = insertInto.query match {
+      case _ if !Strings.isNullOrEmpty(insertInto.query) =>
+        sparkSession.sql(insertInto.query)
+
+      case _ if dataLinkSparkSession.checkTableExists(sparkSession, insertInto.tableName) =>
+        sparkSession.table(insertInto.tableName)
+
+      case _ => throw new SparkException(s"${insertInto.tableName} is not exist")
     }
 
-
-    val saveMode = if (insertInto.isOverWrite) {
-      SaveMode.Overwrite
-    } else {
-      SaveMode.Append
-    }
+    val saveMode = if (insertInto.isOverWrite) SaveMode.Overwrite else SaveMode.Append
 
     val write = if (saveMode != null) { // 设置savemode
       df.write.mode(saveMode)
