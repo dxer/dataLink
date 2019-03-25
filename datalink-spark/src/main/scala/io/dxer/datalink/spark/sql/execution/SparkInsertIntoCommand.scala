@@ -4,7 +4,7 @@ import com.google.common.base.Strings
 import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
 import io.dxer.datalink.sql.DataLinkSession
-import io.dxer.datalink.sql.execution.RunnableCommand
+import io.dxer.datalink.sql.execution.InsertIntoCommand
 import io.dxer.datalink.sql.parser.InsertInto
 import io.dxer.datalink.util.Utils
 import org.apache.spark.SparkException
@@ -13,7 +13,7 @@ import org.apache.spark.sql.hbase.spark._
 
 import scala.collection.JavaConversions._
 
-class InsertIntoCommand(insertInto: InsertInto) extends RunnableCommand {
+class SparkInsertIntoCommand(insertInto: InsertInto) extends InsertIntoCommand(insertInto) {
 
   override def run(dataLinkSession: DataLinkSession): Unit = {
     assert(!Strings.isNullOrEmpty(insertInto.query) || !Strings.isNullOrEmpty(insertInto.tableName), "")

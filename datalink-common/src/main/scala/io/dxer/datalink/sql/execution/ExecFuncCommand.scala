@@ -1,8 +1,7 @@
 package io.dxer.datalink.sql.execution
 
-import io.dxer.datalink.file.FtpClient
-import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
 import io.dxer.datalink.sql.parser.ExecFunc
+import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
 
 class ExecFuncCommand(execFunc: ExecFunc) extends RunnableCommand {
 
@@ -12,22 +11,32 @@ class ExecFuncCommand(execFunc: ExecFunc) extends RunnableCommand {
 
     lazy val hadoopConf = dataLinkSession.hadoopConf
 
-    execFunc.func.toUpperCase match {
-      case "FTP_LOCAL_UPLOAD" =>
+    execFunc.func.toLowerCase match {
 
-      case "FTP_HDFS_UPLOAD" =>
+      case ExecFuncCommand.FTP_TO_HDFS =>
 
-      case "FTP_DOWNLOAD_LOCAL" =>
+      case ExecFuncCommand.FTP_TO_LOCAL =>
 
-      case "FTP_DOWNLOAD_HDFS" =>
+      case ExecFuncCommand.HDFS_TO_FTP =>
 
-      case "SFTP_UPLOAD" =>
+      case ExecFuncCommand.LOCAL_TO_FTP =>
 
-      case "SFTP_DOWNLOAD" =>
+      case ExecFuncCommand.LOCAL_TO_SFTP =>
 
-      case "HDFS_UPLOAD" =>
+      case ExecFuncCommand.HDFS_TO_SFTP =>
 
-      case "HDFS_DOWNLOAD" =>
+      case ExecFuncCommand.SFTP_TO_LOCAL =>
+
+      case ExecFuncCommand.SFTP_TO_LOCAL =>
+
+
+      case ExecFuncCommand.LOCAL_TO_HDFS =>
+
+
+      case ExecFuncCommand.HDFS_TO_LOCAL =>
+
+
+      case ExecFuncCommand.LOCAL_COMMAND =>
 
       case _ => println("Not supported")
     }
@@ -35,27 +44,46 @@ class ExecFuncCommand(execFunc: ExecFunc) extends RunnableCommand {
 
 
   def ftpLocalUpload(connectionManager: ConnectionManager, params: Seq[Any]): Unit = {
-//    params match {
-//      case Seq(String, String) =>
-//        val connectionDescription = connectionManager.getConnectionDescription(params(0).toString)
-//
-//        val host = connectionDescription.properties.getProperty("host")
-//        val port = connectionDescription.properties.getProperty("port").toInt
-//        val username = connectionDescription.properties.getProperty("username")
-//        val password = connectionDescription.properties.getProperty("password")
-//
-//        val ftpClient = new FtpClient(host, port, username, password)
-//
-//        ftpClient.upload("", "")
-//
-//      case Seq(String, String, String) =>
-  //  }
+    //    params match {
+    //      case Seq(String, String) =>
+    //        val connectionDescription = connectionManager.getConnectionDescription(params(0).toString)
+    //
+    //        val host = connectionDescription.properties.getProperty("host")
+    //        val port = connectionDescription.properties.getProperty("port").toInt
+    //        val username = connectionDescription.properties.getProperty("username")
+    //        val password = connectionDescription.properties.getProperty("password")
+    //
+    //        val ftpClient = new FtpClient(host, port, username, password)
+    //
+    //        ftpClient.upload("", "")
+    //
+    //      case Seq(String, String, String) =>
+    //  }
   }
 
   def ftpDownload(params: Seq[Any]): Unit = {
-//    params match {
-//      case Seq(String, String) =>
-//      case Seq(String, String, String) =>
-//    }
+    //    params match {
+    //      case Seq(String, String) =>
+    //      case Seq(String, String, String) =>
+    //    }
   }
+}
+
+object ExecFuncCommand {
+  val FTP_TO_LOCAL = "ftp_to_local"
+  val FTP_TO_HDFS = "ftp_to_hdfs"
+  val LOCAL_TO_FTP = "local_to_ftp"
+  val HDFS_TO_FTP = "hdfs_to_ftp"
+  val LOCAL_COMMAND = ""
+
+  val SFTP_TO_LOCAL = "sftp_to_local"
+  val SFTP_TO_HDFS = "sftp_to_hdfs"
+  val LOCAL_TO_SFTP = "local_to_sftp"
+  val HDFS_TO_SFTP = "hdfs_to_sftp"
+
+
+  val LOCAL_TO_HDFS = "local_to_hdfs"
+  val HDFS_TO_LOCAL = "hdfs_to_local"
+
+
 }

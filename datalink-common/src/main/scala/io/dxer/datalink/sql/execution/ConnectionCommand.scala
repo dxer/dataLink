@@ -1,7 +1,7 @@
 package io.dxer.datalink.sql.execution
 
 import io.dxer.datalink.sql.DataLinkSession
-import io.dxer.datalink.sql.parser.{CreateConnection, DropConnection, ListConnections, ShowConnection}
+import io.dxer.datalink.sql.parser.{CreateConnection, DropConnection, ShowConnections, ShowCreateConnection}
 
 
 class CreateConnectionCommand(createConnection: CreateConnection) extends RunnableCommand {
@@ -18,19 +18,19 @@ class DropConnectionCommand(dropConnection: DropConnection) extends RunnableComm
   }
 }
 
-class ShowConnectionCommand(showConnection: ShowConnection) extends RunnableCommand {
+class ShowCreateConnectionCommand(showConnection: ShowCreateConnection) extends RunnableCommand {
 
   override def run(dataLinkSession: DataLinkSession): Unit = {
     dataLinkSession.connectionManager.getConnectionDescription(showConnection.name)
   }
 }
 
-class ListConnectionsCommand(listConnections: ListConnections) extends RunnableCommand {
+class ShowConnectionsCommand(showConnections: ShowConnections) extends RunnableCommand {
 
   override def run(dataLinkSession: DataLinkSession): Unit = {
     val results = dataLinkSession
       .connectionManager
-      .listConnections(listConnections.connectionType, listConnections.pattern)
+      .listConnections(showConnections.connectionType, showConnections.pattern)
 
     results.foreach(println)
   }

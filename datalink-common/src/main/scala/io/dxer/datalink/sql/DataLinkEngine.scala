@@ -41,14 +41,37 @@ abstract class DataLinkEngine(dataLinkSession: DataLinkSession) {
         (st.isInstanceOf[OriginSQL] && originalSqlVerify(st.asInstanceOf[OriginSQL].sql))) {
         executeStatement(st)
       } else {
-        throw new DataLinkException(s"${st.asInstanceOf[OriginSQL].sql} is not supported")
+        throw new DataLinkException(s"Unsupported SQL statement, ${st.asInstanceOf[OriginSQL].sql}")
       }
     })
   }
 
+  /**
+    *
+    * @param sqlText
+    * @return
+    */
   def originalSqlVerify(sqlText: String): Boolean = true
 
-  def executeStatement(statement: PreparedStatement): Unit
+  def executeStatement(statement: PreparedStatement): Unit = {
+    println(s"==> ${statement.sql}")
+    statement.statement match {
+      case st: ConnectionStatement =>
+        executeConnectionStatement(st)
+
+      case st: LoadTable =>
+        executeCommand(new LoadTableCommand(st))
+
+      case st: InsertInto =>
+        executeCommand(new InsertIntoCommand(st))
+
+      case st: OriginSQL =>
+        executeCommand(new OriginSQLCommand(st))
+
+      case _ => throw new ParseException(Option(statement.sql), "Unsupported SQL statement")
+    }
+  }
+
 
   def executeCommand(command: RunnableCommand): Unit = {
     runner.tryExecute(command, dataLinkSession)
@@ -62,11 +85,11 @@ abstract class DataLinkEngine(dataLinkSession: DataLinkSession) {
       case st: DropConnection =>
         executeCommand(new DropConnectionCommand(st))
 
-      case st: ShowConnection =>
-        executeCommand(new ShowConnectionCommand(st))
+      case st: ShowCreateConnection =>
+        executeCommand(new ShowCreateConnectionCommand(st))
 
-      case st: ListConnections =>
-        executeCommand(new ListConnectionsCommand(st))
+      case st: ShowConnections =>
+        executeCommand(new ShowConnectionsCommand(st))
     }
   }
 

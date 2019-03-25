@@ -8,7 +8,7 @@ import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.grok.Grok
 import io.dxer.datalink.spark.util.SparkUtils
 import io.dxer.datalink.spark.{Constants, DataLinkSparkSession}
-import io.dxer.datalink.sql.execution.RunnableCommand
+import io.dxer.datalink.sql.execution.LoadTableCommand
 import io.dxer.datalink.sql.parser.LoadTable
 import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
 import io.dxer.datalink.util.{PropertiesUtils, Utils}
@@ -18,16 +18,9 @@ import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SparkSession}
 
 import scala.collection.JavaConversions._
 
-class LoadTableCommand(loadTable: LoadTable) extends RunnableCommand {
+class SparkLoadTableCommand(loadTable: LoadTable) extends LoadTableCommand(loadTable) {
 
-  override def run(dataLinkSession: DataLinkSession): Unit = {
-    loadTable.isIntoTable match {
-      case true => loadIntoTable(dataLinkSession, loadTable)
-      case _ => loadAsTable(dataLinkSession, loadTable)
-    }
-  }
-
-  private def loadAsTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
+  protected override def loadAsTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
     val dataLinkSparkSession = dataLinkSession.asInstanceOf[DataLinkSparkSession]
     val sparkSession = dataLinkSparkSession.sparkSession
 
@@ -70,7 +63,7 @@ class LoadTableCommand(loadTable: LoadTable) extends RunnableCommand {
       case _ if inputFormat != null =>
         inputFormat.run(loadTable)
 
-      case _ => throw new DataLinkException(s"LoadAsTable Not support format: ${loadTable.format}")
+      case _ => throw new DataLinkException("Unsupported SQL format")
     }
 
     df.createOrReplaceTempView(tableName)
@@ -82,7 +75,7 @@ class LoadTableCommand(loadTable: LoadTable) extends RunnableCommand {
     df.show()
   }
 
-  private def loadIntoTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
+  protected override def loadIntoTable(dataLinkSession: DataLinkSession, loadTable: LoadTable): Unit = {
     val dataLinkSparkSession = dataLinkSession.asInstanceOf[DataLinkSparkSession]
     val sparkSession = dataLinkSparkSession.sparkSession
 
@@ -120,7 +113,7 @@ class LoadTableCommand(loadTable: LoadTable) extends RunnableCommand {
       case _ if inputFormat != null =>
         inputFormat.run(loadTable)
 
-      case _ => throw new DataLinkException("")
+      case _ => throw new DataLinkException("Unsupported SQL format")
     }
 
     val tmpTable = s"tmp_${tableName}_${System.currentTimeMillis()}"
