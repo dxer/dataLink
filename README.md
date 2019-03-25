@@ -7,7 +7,7 @@ DataLink是一个基于**Spark+SparkSQL**实现的应用程序，实现了对Spa
 
 1. clone项目
 ```bash
-git clone https://github.com/dxer/DataLink.git
+git clone https://github.com/dxer/dataLink.git
 ```
 
 2. 编译
