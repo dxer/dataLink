@@ -1,5 +1,6 @@
 package io.dxer.datalink.sql.execution
 
+import io.dxer.datalink.exception.DataLinkException
 import io.dxer.datalink.sql.parser.ExecFunc
 import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
 
@@ -29,16 +30,13 @@ class ExecFuncCommand(execFunc: ExecFunc) extends RunnableCommand {
 
       case ExecFuncCommand.SFTP_TO_LOCAL =>
 
-
       case ExecFuncCommand.LOCAL_TO_HDFS =>
-
 
       case ExecFuncCommand.HDFS_TO_LOCAL =>
 
-
       case ExecFuncCommand.LOCAL_COMMAND =>
 
-      case _ => println("Not supported")
+      case _ => throw new DataLinkException("Unsupported exec command")
     }
   }
 

@@ -1,5 +1,6 @@
 package io.dxer.datalink.spark
 
+import com.google.common.base.Strings
 import io.dxer.datalink.sql.{ConnectionManager, DataLinkSession}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.parser.ParserInterface
@@ -19,17 +20,18 @@ class DataLinkSparkSession(val sparkSession: SparkSession,
   }
 
   def sqlVerify(sql: String): Boolean = {
-    sparkSession
-      .sessionState
-      .catalog
-      .getFieldObject("org$apache$spark$sql$catalyst$catalog$SessionCatalog$$parser")
-      .asInstanceOf[ParserInterface]
-      .parsePlan(sql) != null
+    !Strings.isNullOrEmpty(sql) &&
+      sparkSession
+        .sessionState
+        .catalog
+        .getFieldObject("org$apache$spark$sql$catalyst$catalog$SessionCatalog$$parser")
+        .asInstanceOf[ParserInterface]
+        .parsePlan(sql) != null
   }
 
   /* check table exists */
   def checkTableExists(sparkSession: SparkSession, tableName: String): Boolean = {
-    sparkSession.catalog.tableExists(tableName)
+    !Strings.isNullOrEmpty(tableName) && sparkSession.catalog.tableExists(tableName)
   }
 
 }

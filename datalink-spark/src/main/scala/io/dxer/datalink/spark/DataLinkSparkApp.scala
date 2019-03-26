@@ -24,6 +24,7 @@ class DataLinkSparkApp extends DataLink {
     } else {
       ""
     }
+
     if (Strings.isNullOrEmpty(sqlText)) {
       return
     }

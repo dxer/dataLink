@@ -12,6 +12,10 @@ import org.apache.spark.sql.hbase.spark._
 
 import scala.collection.JavaConversions._
 
+/**
+  *
+  * @param insertInto
+  */
 class SparkInsertIntoCommand(insertInto: InsertInto) extends InsertIntoCommand(insertInto) {
 
   override def run(dataLinkSession: DataLinkSession): Unit = {
@@ -20,25 +24,19 @@ class SparkInsertIntoCommand(insertInto: InsertInto) extends InsertIntoCommand(i
     val dataLinkSparkSession = dataLinkSession.asInstanceOf[DataLinkSparkSession]
     val sparkSession = dataLinkSparkSession.sparkSession
 
-    if (!Strings.isNullOrEmpty(insertInto.tableName) ||
-      (!Strings.isNullOrEmpty(insertInto.query) && dataLinkSparkSession.sqlVerify(insertInto.query))) {
-    } else {
-      throw new SparkException(s"table or query is not null")
-    }
-
-    val df = insertInto.query match {
-      case _ if !Strings.isNullOrEmpty(insertInto.query) =>
-        sparkSession.sql(insertInto.query)
-
+    val df = insertInto match {
       case _ if dataLinkSparkSession.checkTableExists(sparkSession, insertInto.tableName) =>
         sparkSession.table(insertInto.tableName)
 
-      case _ => throw new SparkException(s"${insertInto.tableName} is not exist")
+      case _ if dataLinkSparkSession.sqlVerify(insertInto.query) =>
+        sparkSession.sql(insertInto.query)
+
+      case _ => throw new SparkException("Unsupported SQL")
     }
 
     val saveMode = if (insertInto.isOverWrite) SaveMode.Overwrite else SaveMode.Append
 
-    val write = if (saveMode != null) { // 设置savemode
+    val write = if (saveMode != null) {
       df.write.mode(saveMode)
     } else {
       df.write
@@ -62,6 +60,7 @@ class SparkInsertIntoCommand(insertInto: InsertInto) extends InsertIntoCommand(i
 
       case Constants.JDBC =>
       //        write.jdbc()
+
       case _ => throw new SparkException(s"InsertInto Not support format: ${format}")
     }
 
