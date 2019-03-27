@@ -12,7 +12,7 @@ git clone https://github.com/dxer/dataLink.git
 
 2. 编译
 ```bash
-cd DataLink
+cd dataLink
 mvn clean package -Dmaven.test.skip=true 
 # 或
 mvn clean package
