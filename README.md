@@ -1,7 +1,7 @@
 # DataLink
 > With just a few lines of SQL code you can effortlessly import/export data and complete other ETL operations.
 
-DataLink是一个基于**Spark+SparkSQL**实现的应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`Load`，`QueryASTable`、`InsertInto`等操作的支持，可以通过编写sql语句的方式来完成更多的ETL操作。
+DataLink是一个基于**Spark+SparkSQL**实现的Spark应用程序，实现了对SparkSQL原生sql语法的扩展，增加了`LoadTable`，`QueryASTable`、`InsertInto`等操作的支持，可以通过编写sql语句的方式来完成ETL操作。
 
 ## 编译
 
